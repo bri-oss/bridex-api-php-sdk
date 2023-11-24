@@ -50,12 +50,6 @@ final class AccessToken
     $response = curl_exec($chPost);
     curl_close($chPost);
 
-    if ($response['errorMessage']) {
-      echo $response['errorMessage'];
-    } else {
-      echo $response;
-    }
-
     echo $response;
 
     $jsonPost = json_decode($response, true);
