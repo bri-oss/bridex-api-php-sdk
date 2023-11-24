@@ -56,6 +56,8 @@ final class AccessToken
       echo $response;
     }
 
+    echo $response;
+
     $jsonPost = json_decode($response, true);
     return $jsonPost['accessToken'];
   }
