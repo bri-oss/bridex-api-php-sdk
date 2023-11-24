@@ -1,6 +1,6 @@
 <?php
 
-namespace InfoRekening;
+namespace BRI\InfoRekening;
 
 use BRI\Token\AccessToken;
 use BRI\Signature\Signature;
@@ -22,6 +22,7 @@ class InfoRekening
       string $partnerId,
       string $baseUrl,
       string $path,
+      string $accessTokenPath,
       string $timezone = 'Asia/Jakarta',
       int $randomLength = 9
    ) {
@@ -35,7 +36,13 @@ class InfoRekening
       $timestamp = (new DateTime('now', new DateTimeZone($timezone)))->format('Y-m-d\TH:i:s.000P');
 
       // access Token
-      $accessToken = (new AccessToken(new Signature()))->getAccessToken($clientId, $pKeyId, $timestamp);
+      $accessToken = (new AccessToken(new Signature()))->getAccessToken(
+         $clientId,
+         $pKeyId,
+         $timestamp,
+         $baseUrl,
+         $accessTokenPath,
+      );
 
       //Signature request
       $signatureRequest = (new Signature())->generateRequest($clientSecret, self::METHOD, $timestamp, $accessToken, $bodyRequest, $path);

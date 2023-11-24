@@ -1,6 +1,6 @@
 <?php
 
-namespace InfoMutasi;
+namespace BRI\InfoMutasi;
 
 use BRI\Token\AccessToken;
 use BRI\Signature\Signature;
@@ -16,14 +16,15 @@ class InfoMutasi
 
    public function getInfoMutasi(
       string $account,
+      string $startDate,
+      string $endDate,
       string $clientId,
       string $clientSecret,
       string $pKeyId,
       string $partnerId,
       string $baseUrl,
       string $path,
-      string $startDate,
-      string $endDate,
+      string $accessTokenPath,
       string $timezone = 'Asia/Jakarta',
       int $randomLength = 9
    ) {
@@ -41,7 +42,13 @@ class InfoMutasi
       $timestamp = (new DateTime('now', new DateTimeZone($timezone)))->format('Y-m-d\TH:i:s.000P');
 
       // access Token
-      $accessToken = (new AccessToken(new Signature()))->getAccessToken($clientId, $pKeyId, $timestamp);
+      $accessToken = (new AccessToken(new Signature()))->getAccessToken(
+         $clientId,
+         $pKeyId,
+         $timestamp,
+         $baseUrl,
+         $accessTokenPath,
+      );
 
       //Signature request
       $signatureRequest = (new Signature())->generateRequest($clientSecret, self::METHOD, $timestamp, $accessToken, $bodyRequest, $path);
@@ -74,4 +81,3 @@ class InfoMutasi
       return $response;
    }
 }
-

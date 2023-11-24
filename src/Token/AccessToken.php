@@ -7,7 +7,6 @@ use BRI\Signature\Signature;
 final class AccessToken
 {
   private Signature $signature;
-  private const URL = 'https://sandbox.partner.api.bri.co.id/snap/v1.0/access-token/b2b';
 
   public function __construct(Signature $signature)
   {
@@ -16,8 +15,13 @@ final class AccessToken
 
   // generate signature Token
   public function
-  getAccessToken(string $clientId, string $pKeyId, string $timestamp): string
-  {
+  getAccessToken(
+    string $clientId,
+    string $pKeyId,
+    string $timestamp,
+    string $baseUrl,
+    string $accessTokenPath,
+  ): string {
     // get signature token
     $signatureToken = $this->signature->generateToken($pKeyId, $clientId, $timestamp);
 
@@ -36,7 +40,7 @@ final class AccessToken
     // fetch access token
     $chPost = curl_init();
     curl_setopt_array($chPost, [
-      CURLOPT_URL => self::URL,
+      CURLOPT_URL => "$baseUrl$accessTokenPath",
       CURLOPT_HTTPHEADER => $requestHeadersToken,
       CURLOPT_POSTFIELDS => $bodyToken,
       CURLOPT_RETURNTRANSFER => true,
@@ -46,6 +50,11 @@ final class AccessToken
     $response = curl_exec($chPost);
     curl_close($chPost);
 
+    if ($response['errorMessage']) {
+      echo $response['errorMessage'];
+    } else {
+      echo $response;
+    }
 
     $jsonPost = json_decode($response, true);
     return $jsonPost['accessToken'];
