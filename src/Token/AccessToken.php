@@ -20,7 +20,7 @@ final class AccessToken
     string $pKeyId,
     string $timestamp,
     string $baseUrl,
-    string $accessTokenPath,
+    string $accessTokenPath
   ): string {
     // get signature token
     $signatureToken = $this->signature->generateToken($pKeyId, $clientId, $timestamp);
