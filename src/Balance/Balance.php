@@ -24,10 +24,14 @@ class Balance
     string $path,
     string $accessTokenPath,
     string $timezone = 'Asia/Jakarta',
-    int $randomLength = 9
+    int $randomLength = 9,
+    ?string $additionalBody = null
   ) {
     // Body request
     $dataRequest = ['accountNo' => $account];
+    if ($additionalBody !== null) {
+      $dataRequest = array_merge($dataRequest, json_decode($additionalBody, true));
+    }
     $bodyRequest = json_encode($dataRequest, true);
 
     // Generate random number for X-External-id and timestamp
@@ -136,7 +140,8 @@ class Balance
       $path,
       $accessTokenPath,
       $timezone,
-      $randomLength
+      $randomLength,
+      $bodyRequest,
     );
 
     return $this->executeCurlRequest("$baseUrl$path", $headersRequest, $bodyRequest);
