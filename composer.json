@@ -1,6 +1,6 @@
 {
-  "name": "feedloop/bridex-api-php-sdk",
-  "description": "helps to integrate easily with BRI API",
+  "name": "feedloop/snap-bi-php-sdk",
+  "description": "helps to integrate easily with SNAP BI",
   "type": "library",
   "license": "MIT",
   "authors": [
