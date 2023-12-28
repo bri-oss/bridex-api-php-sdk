@@ -1,5 +1,5 @@
 {
-  "name": "BRIAPI/snap-bi-php-sdk",
+  "name": "briapi/snap-bi-php-sdk",
   "description": "helps to integrate easily with SNAP BI",
   "type": "library",
   "license": "MIT",
