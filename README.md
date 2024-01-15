@@ -7,7 +7,7 @@ You can get the account balance inquiry and balance statement. aside from that y
 
 Installation can be done via Composer:
 
-> $ composer require feedloop/snap-bi-php-sdk
+> $ composer require briapi/snap-bi-php-sdk
 
 ## Usage
 
@@ -21,9 +21,19 @@ Example:
 require __DIR__ . '/../vendor/autoload.php';
 
 use BRI\Balance\Balance;
+use BRI\Token\AccessToken;
+use BRI\Util\RandomNumber;
+use BRI\Signature\Signature;
 
 $account = '111231271284142'; //account number
 $partnerId = 'foobar'; // Partner ID
+$channelId = 'foobar'; // Channel ID
+
+//generate random External ID
+$externalId = (new RandomNumber())->generateRandomNumber(9);;
+
+//get current timestamp based on current timezone
+$timestamp = (new DateTime('now', new DateTimeZone('Asia/Jakarta')))->format('Y-m-d\TH:i:s.000P');
 
 // user's SNAP BI credentials
 $clientId = 'foobar';
@@ -35,8 +45,17 @@ $baseUrl = 'Base URL Path'; // ex: https://xxxxxx.co.id
 $accessTokenPath = 'Access token path'; // ex: /xxx/xxx/xxx
 $path = 'API path'; // ex: /xxx/xxx/xxx
 
+//get access token
+$accessToken = (new AccessToken(new Signature()))->getAccessToken(
+  $clientId,
+  $pKeyId,
+  $timestamp,
+  $baseUrl,
+  $accessTokenPath,
+);
+
 // print response to terminal
-echo (new Balance())->inquiry($account, $clientId, $clientSecret, $pKeyId, $partnerId, $baseUrl, $path, $accessTokenPath);
+echo (new Balance())->inquiry($account, $clientSecret, $partnerId, $baseUrl, $path, $accessToken, $channelId, $externalId, $timestamp);
 ```
 
 Response:
@@ -81,9 +100,19 @@ Example:
 require __DIR__ . '/../vendor/autoload.php';
 
 use BRI\Balance\Balance;
+use BRI\Token\AccessToken;
+use BRI\Util\RandomNumber;
+use BRI\Signature\Signature;
 
 $account = '234567891012348'; //account number
 $partnerId = 'foobar'; // Partner ID
+$channelId = 'foobar'; // Channel ID
+
+//generate random External ID
+$externalId = (new RandomNumber())->generateRandomNumber(9);;
+
+//get current timestamp based on current timezone
+$timestamp = (new DateTime('now', new DateTimeZone('Asia/Jakarta')))->format('Y-m-d\TH:i:s.000P');
 
 // user's SNAP BI credentials
 $clientId = 'foobar';
@@ -99,8 +128,17 @@ $path = 'API path'; // ex: /xxx/xxx/xxx
 $startDate = '2022-06-06T12:09:00+07:00'; // start date
 $endDate = '2022-06-08T20:09:00+07:00'; // end date
 
+//get access token
+$accessToken = (new AccessToken(new Signature()))->getAccessToken(
+  $clientId,
+  $pKeyId,
+  $timestamp,
+  $baseUrl,
+  $accessTokenPath,
+);
+
 // print response to terminal
-echo (new Balance())->statement($account, $startDate, $endDate, $clientId, $clientSecret, $pKeyId, $partnerId, $baseUrl, $path, $accessTokenPath);
+echo (new Balance())->statement($account, $startDate, $endDate, $clientSecret, $partnerId, $baseUrl, $path, $accessToken, $channelId, $externalId, $timestamp);
 ```
 
 Response:
