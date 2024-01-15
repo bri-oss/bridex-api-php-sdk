@@ -2,9 +2,7 @@
 
 namespace BRI\Balance;
 
-use BRI\Token\AccessToken;
 use BRI\Signature\Signature;
-use BRI\Util\RandomNumber;
 use DateTime;
 use DateTimeZone;
 
@@ -12,19 +10,16 @@ class Balance
 {
   private const METHOD = 'POST';
   private const CONTENT_TYPE = 'application/json';
-  private const CHANNEL_ID = 'SNPBI';
 
   private function prepareRequest(
     string $account,
-    string $clientId,
     string $clientSecret,
-    string $pKeyId,
     string $partnerId,
-    string $baseUrl,
     string $path,
-    string $accessTokenPath,
-    string $timezone = 'Asia/Jakarta',
-    int $randomLength = 9,
+    string $accessToken,
+    string $channelId,
+    string $externalId,
+    string $timezone,
     ?string $additionalBody = null
   ) {
     // Body request
@@ -35,17 +30,7 @@ class Balance
     $bodyRequest = json_encode($dataRequest, true);
 
     // Generate random number for X-External-id and timestamp
-    $randomNumber = (new RandomNumber())->generateRandomNumber($randomLength);
     $timestamp = (new DateTime('now', new DateTimeZone($timezone)))->format('Y-m-d\TH:i:s.000P');
-
-    // Access Token
-    $accessToken = (new AccessToken(new Signature()))->getAccessToken(
-      $clientId,
-      $pKeyId,
-      $timestamp,
-      $baseUrl,
-      $accessTokenPath,
-    );
 
     // Signature request
     $signatureRequest = (new Signature())->generateRequest($clientSecret, self::METHOD, $timestamp, $accessToken, $bodyRequest, $path);
@@ -56,8 +41,8 @@ class Balance
       "X-SIGNATURE: $signatureRequest",
       "Content-Type: " . self::CONTENT_TYPE,
       "X-PARTNER-ID: $partnerId",
-      "CHANNEL-ID: " . self::CHANNEL_ID,
-      "X-EXTERNAL-ID: $randomNumber",
+      "CHANNEL-ID: " . $channelId,
+      "X-EXTERNAL-ID: $externalId",
       "Authorization: Bearer $accessToken",
     ];
 
@@ -83,27 +68,24 @@ class Balance
 
   public function inquiry(
     string $account,
-    string $clientId,
     string $clientSecret,
-    string $pKeyId,
     string $partnerId,
     string $baseUrl,
     string $path,
-    string $accessTokenPath,
+    string $accessToken,
+    string $channelId,
+    string $externalId,
     string $timezone = 'Asia/Jakarta',
-    int $randomLength = 9
   ) {
     list($bodyRequest, $headersRequest) = $this->prepareRequest(
       $account,
-      $clientId,
       $clientSecret,
-      $pKeyId,
       $partnerId,
-      $baseUrl,
       $path,
-      $accessTokenPath,
+      $accessToken,
+      $channelId,
+      $externalId,
       $timezone,
-      $randomLength
     );
 
     return $this->executeCurlRequest("$baseUrl$path", $headersRequest, $bodyRequest);
@@ -113,15 +95,14 @@ class Balance
     string $account,
     string $startDate,
     string $endDate,
-    string $clientId,
     string $clientSecret,
-    string $pKeyId,
     string $partnerId,
     string $baseUrl,
     string $path,
-    string $accessTokenPath,
+    string $accessToken,
+    string $channelId,
+    string $externalId,
     string $timezone = 'Asia/Jakarta',
-    int $randomLength = 9
   ) {
     $dataRequest = [
       'accountNo' => $account,
@@ -132,15 +113,13 @@ class Balance
 
     list(, $headersRequest) = $this->prepareRequest(
       $account,
-      $clientId,
       $clientSecret,
-      $pKeyId,
       $partnerId,
-      $baseUrl,
       $path,
-      $accessTokenPath,
+      $accessToken,
+      $channelId,
+      $externalId,
       $timezone,
-      $randomLength,
       $bodyRequest,
     );
 
