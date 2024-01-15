@@ -3,8 +3,6 @@
 namespace BRI\Balance;
 
 use BRI\Signature\Signature;
-use DateTime;
-use DateTimeZone;
 
 class Balance
 {
@@ -19,7 +17,7 @@ class Balance
     string $accessToken,
     string $channelId,
     string $externalId,
-    string $timezone,
+    string $timestamp,
     ?string $additionalBody = null
   ) {
     // Body request
@@ -28,9 +26,6 @@ class Balance
       $dataRequest = array_merge($dataRequest, json_decode($additionalBody, true));
     }
     $bodyRequest = json_encode($dataRequest, true);
-
-    // Generate random number for X-External-id and timestamp
-    $timestamp = (new DateTime('now', new DateTimeZone($timezone)))->format('Y-m-d\TH:i:s.000P');
 
     // Signature request
     $signatureRequest = (new Signature())->generateRequest($clientSecret, self::METHOD, $timestamp, $accessToken, $bodyRequest, $path);
@@ -75,7 +70,7 @@ class Balance
     string $accessToken,
     string $channelId,
     string $externalId,
-    string $timezone = 'Asia/Jakarta',
+    string $timestamp,
   ) {
     list($bodyRequest, $headersRequest) = $this->prepareRequest(
       $account,
@@ -85,7 +80,7 @@ class Balance
       $accessToken,
       $channelId,
       $externalId,
-      $timezone,
+      $timestamp,
     );
 
     return $this->executeCurlRequest("$baseUrl$path", $headersRequest, $bodyRequest);
@@ -102,7 +97,7 @@ class Balance
     string $accessToken,
     string $channelId,
     string $externalId,
-    string $timezone = 'Asia/Jakarta',
+    string $timestamp,
   ) {
     $dataRequest = [
       'accountNo' => $account,
@@ -119,7 +114,7 @@ class Balance
       $accessToken,
       $channelId,
       $externalId,
-      $timezone,
+      $timestamp,
       $bodyRequest,
     );
 
