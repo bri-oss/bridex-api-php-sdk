@@ -18,7 +18,7 @@ This api is used to inquiry account balance. For detailed documentation for this
 Example:
 
 ```php
-require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '/../<the folder where you extracted this file>/autoload.php';
 
 use BRI\Balance\Balance;
 use BRI\Token\AccessToken;
@@ -97,7 +97,7 @@ This can be used to get the balance statement. For detailed documentation you ca
 Example:
 
 ```php
-require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '/../<the folder where you extracted this file>/autoload.php';
 
 use BRI\Balance\Balance;
 use BRI\Token\AccessToken;
@@ -202,7 +202,7 @@ This can be used to get an account token and signature token to be used in BRI A
 #### Access Token example:
 
 ```php
-require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '/../<the folder where you extracted this file>/autoload.php';
 
 use BRI\Token\AccessToken;
 use BRI\Signature\Signature;
@@ -240,7 +240,7 @@ Response:
 #### Signature API Access example:
 
 ```php
-require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '/../<the folder where you extracted this file>/autoload.php';
 
 use BRI\Signature\Signature;
 
