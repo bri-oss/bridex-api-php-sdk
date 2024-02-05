@@ -1,13 +1,18 @@
 # SNAP-BI-PHP-SDK
 
-This SDK is to help to integrate easily with [SNAP BI](https://developers.bri.co.id/).
+This SDK is to help to integrate easily with [SNAP BI](https://developers.bri.co.id/index.php/id/snap-bi/create-snap-key).
 You can get the account balance inquiry and balance statement. aside from that you can also get the access token and create the signature api access for SNAP BI, if you wish to access other SNAP BI product's.
 
 ## Installation
 
-Installation can be done via Composer:
+1. extract the zip file to the folder of your choosing.
+2. edit the '$baseDir' variable in autoload.php file so that it points to the correct directory where you extracted.
 
-> $ composer require briapi/snap-bi-php-sdk
+```php
+$baseDir = __DIR__ . '/../<the folder where you extracted this file>/src/';
+```
+
+3. put include/require 'autoload.php' in your script where you want to use this library
 
 ## Usage
 
