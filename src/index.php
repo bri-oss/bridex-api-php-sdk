@@ -8,7 +8,7 @@ Dotenv\Dotenv::createUnsafeImmutable(__DIR__ . '/..' . '')->load();
 require __DIR__ . '/../briapi-sdk/autoload.php';
 use BRI\Balance\Balance;
 use BRI\Token\AccessToken;
-use BRI\Util\RandomNumber;
+use BRI\Util\VarNumber;
 use BRI\Signature\Signature;
 
 // env values
@@ -23,11 +23,11 @@ $accessTokenPath = '/snap/v1.0/access-token/b2b'; //access token path
 
 // change variables accordingly
 $account = '111231271284142'; // account number
-$partnerId = ''; //partner id
-$channelId = ''; // channel id
+$partnerId = 'feedloop'; //partner id
+$channelId = 'SNBPI'; // channel id
 
 //external id
-$externalId = (new RandomNumber())->generateRandomNumber(9);
+$externalId = (new VarNumber())->generateVar(9);
 
 // fetches a new access token every specified minute with a maximum of 15 minutes
 $minutes = 15;
