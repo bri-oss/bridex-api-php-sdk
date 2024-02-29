@@ -23,8 +23,8 @@ $accessTokenPath = '/snap/v1.0/access-token/b2b'; //access token path
 
 // change variables accordingly
 $account = '111231271284142'; // account number
-$partnerId = 'feedloop'; //partner id
-$channelId = 'SNBPI'; // channel id
+$partnerId = ''; //partner id
+$channelId = ''; // channel id
 
 //external id
 $externalId = (new VarNumber())->generateVar(9);
