@@ -14,7 +14,7 @@ final class VarNumber
     }
     $min = pow(10, $randomLength - 1);
     $max = pow(10, $randomLength) - 1;
-    $var = rand($min, $max);
+    $var = random_int($min, $max);
     return $var;
   }
 }
