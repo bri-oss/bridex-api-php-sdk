@@ -50,8 +50,6 @@ final class AccessToken
     $response = curl_exec($chPost);
     curl_close($chPost);
 
-    echo $response;
-
     $jsonPost = json_decode($response, true);
     return $jsonPost['accessToken'];
   }
