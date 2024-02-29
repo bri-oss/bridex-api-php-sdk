@@ -1,4 +1,5 @@
 <?php
+header("Strict-Transport-Security: max-age=31536000; includeSubDomains");
 
 spl_autoload_register(function ($class) {
   // Map the namespace to the corresponding directory
