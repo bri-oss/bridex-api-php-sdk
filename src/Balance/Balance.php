@@ -70,7 +70,7 @@ class Balance
     string $accessToken,
     string $channelId,
     string $externalId,
-    string $timestamp,
+    string $timestamp
   ) {
     list($bodyRequest, $headersRequest) = $this->prepareRequest(
       $account,
@@ -97,7 +97,7 @@ class Balance
     string $accessToken,
     string $channelId,
     string $externalId,
-    string $timestamp,
+    string $timestamp
   ) {
     $dataRequest = [
       'accountNo' => $account,
