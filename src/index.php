@@ -23,8 +23,8 @@ $accessTokenPath = '/snap/v1.0/access-token/b2b'; //access token path
 
 // change variables accordingly
 $account = '111231271284142'; // account number
-$partnerId = ''; //partner id
-$channelId = ''; // channel id
+$partnerId = 'feedloop'; //partner id
+$channelId = '12345'; // channel id
 
 //external id
 $externalId = (new VarNumber())->generateVar(9);
@@ -55,4 +55,8 @@ if (!file_exists('accessToken.txt') || isTokenExpired('timestamp.txt', $minutes)
   echo "Used Token\n";
 }
 
-echo (new Balance())->inquiry($account, $clientSecret, $partnerId, $baseUrl, $path, $accessToken, $channelId, $externalId, $timestamp);
+$response = (new Balance())->inquiry($account, $clientSecret, $partnerId, $baseUrl, $path, $accessToken, $channelId, $externalId, $timestamp);
+
+$json = json_encode($response, JSON_PRETTY_PRINT);
+
+echo $response;
