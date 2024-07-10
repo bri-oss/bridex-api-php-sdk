@@ -16,7 +16,7 @@ interface IntrabankTransferInterface {
     string $beneficiaryAccountNo,
     ?string $deviceId,
     ?string $channel
-  ): string | bool;
+  ): string;
   public function transfer(
     string $clientSecret,
     string $partnerId,
@@ -35,7 +35,7 @@ interface IntrabankTransferInterface {
     ?string $customerReference,
     ?string $deviceId,
     ?string $channel
-  ): string | bool;
+  ): string;
 }
 
 class IntrabankTransfer implements IntrabankTransferInterface {
@@ -65,7 +65,7 @@ class IntrabankTransfer implements IntrabankTransferInterface {
     string $beneficiaryAccountNo,
     ?string $deviceId,
     ?string $channel
-  ): string | bool {
+  ): string {
     $additionalBody = [
       'beneficiaryAccountNo' => $beneficiaryAccountNo,
       'additionalInfo' => (object) [
@@ -114,7 +114,7 @@ class IntrabankTransfer implements IntrabankTransferInterface {
     ?string $customerReference,
     ?string $deviceId,
     ?string $channel
-  ): string | bool {
+  ): string {
     $additionalBody = [
       'partnerReferenceNo' => $partnerReferenceNo,
       'amount' => (object) [

@@ -6,7 +6,23 @@ use BRI\Util\ExecuteCurlRequest;
 use BRI\Util\PrepareRequest;
 use BRI\Util\VarNumber;
 
-class TransactionStatusInquiry {
+interface TransactionStatusInquiryInterface {
+  public function inquiry(
+    string $clientSecret,
+    string $partnerId,
+    string $baseUrl,
+    string $accessToken,
+    string $channelId,
+    string $timestamp,
+    string $originalPartnerReferenceNo,
+    string $serviceCode,
+    string $transactionDate,
+    ?string $deviceId,
+    ?string $channel
+  ): string;
+}
+
+class TransactionStatusInquiry implements TransactionStatusInquiryInterface {
   private ExecuteCurlRequest $executeCurlRequest;
   private PrepareRequest $prepareRequest;
   private string $externalId;
@@ -30,7 +46,7 @@ class TransactionStatusInquiry {
     string $transactionDate,
     ?string $deviceId,
     ?string $channel
-  ){
+  ): string {
     $additionalBody = [
       'originalPartnerReferenceNo' => $originalPartnerReferenceNo,
       'serviceCode' => $serviceCode,

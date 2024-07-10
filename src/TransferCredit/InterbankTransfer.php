@@ -18,7 +18,7 @@ interface InterbankTransferInterface {
     string $beneficiaryAccountNo,
     ?string $deviceId,
     ?string $channel
-  ): string | bool;
+  ): string;
   public function transfer(
     string $clientSecret,
     string $partnerId,
@@ -40,7 +40,7 @@ interface InterbankTransferInterface {
     ?string $customerReference,
     ?string $deviceId,
     ?string $channel
-  ): string | bool;
+  ): string;
 }
 
 class InterbankTransfer implements InterbankTransferInterface {
@@ -67,7 +67,7 @@ class InterbankTransfer implements InterbankTransferInterface {
     string $beneficiaryAccountNo,
     ?string $deviceId,
     ?string $channel
-  ): string | bool {
+  ): string {
     $additionalBody = [
       'beneficiaryBankCode' => $beneficiaryBankCode,
       'beneficiaryAccountNo' => $beneficiaryAccountNo,
@@ -120,7 +120,7 @@ class InterbankTransfer implements InterbankTransferInterface {
     ?string $customerReference,
     ?string $deviceId,
     ?string $channel
-  ): string | bool {
+  ): string {
     $additionalBody = [
       'partnerReferenceNo' => $partnerReferenceNo,
       'amount' => (object) [
