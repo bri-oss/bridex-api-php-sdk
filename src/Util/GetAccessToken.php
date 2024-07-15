@@ -4,11 +4,13 @@ namespace BRI\Util;
 
 use BRI\Signature\Signature;
 use BRI\Token\AccessToken;
+use BRI\Token\AccessTokenBRIAPI;
 use DateTime;
 use DateTimeZone;
 
 class GetAccessToken {
   private $accessTokenPath = '/snap/v1.0/access-token/b2b'; //access token path
+  private $accessTokenBRIAPIPath = '/oauth/client_credential/accesstoken?grant_type=client_credentials'; // path access token bri api
   private $minutes = 15;
 
   public function setMinutes($minutes){
@@ -57,5 +59,22 @@ class GetAccessToken {
     }
 
     return [$accessToken, $timestamp];
+  }
+
+  public function getBRIAPI(
+    string $clientId,
+    string $clientSecret,
+    string $baseUrl
+  ): string {
+    $accessToken = (new AccessTokenBRIAPI())->getAccessToken(
+      $clientId,
+      $clientSecret,
+      $baseUrl,
+      $this->accessTokenBRIAPIPath,
+    );
+
+    file_put_contents('accessToken.txt', $accessToken);
+
+    return $accessToken;
   }
 }
