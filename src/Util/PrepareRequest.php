@@ -121,17 +121,15 @@ class PrepareRequest {
 
   public function Brizzi(
     string $clientSecret,
-    string $partnerId,
     string $path,
     string $accessToken,
-    string $channelId,
     string $externalId,
     string $timestamp,
     ?string $additionalBody = null,
     ?string $method = 'POST'
   ): array {
     // Signature request
-    $signatureRequest = (new Signature())->generateRequest($clientSecret, $method, $timestamp, $accessToken, $additionalBody, $path);
+    $signatureRequest = (new Signature())->generateBRIAPI($clientSecret, $method, $timestamp, $accessToken, $additionalBody, $path);
 
     // Header request
     $headersRequest = [
@@ -149,20 +147,19 @@ class PrepareRequest {
     string $clientSecret,
     string $path,
     string $accessToken,
-    string $externalId,
     string $timestamp,
     ?string $additionalBody = null,
     ?string $method = 'POST'
   ): array {
     // Signature request
-    $signatureRequest = (new Signature())->generateRequest($clientSecret, $method, $timestamp, $accessToken, $additionalBody, $path);
+    $signatureRequest = (new Signature())->generateBRIAPI($clientSecret, $method, $timestamp, $accessToken, $additionalBody, $path);
 
     // Header request
     $headersRequest = [
       "BRI-Timestamp: $timestamp",
       "BRI-Signature: $signatureRequest",
       "Content-Type: " . self::CONTENT_TYPE,
-      "BRI-External-Id: $externalId",
+      "partnerCode: 12345",
       "Authorization: Bearer " . $accessToken,
     ];
 

@@ -16,10 +16,10 @@ class AccessTokenBRIAPI implements AccessTokenBRIAPIInterface {
   {
     // body request
     $bodyReq = [
-      "client_id" => "pqYYBsSc6rHwCqp6o4R8ExmBRubEpqtY",
-      "client_secret" => "idbaNFh0mGSZ7xol"
+      "client_id" => $clientId,
+      "client_secret" => $clientSecret
     ];
-    $bodyToken = json_encode($bodyReq);
+    $bodyToken = http_build_query($bodyReq);
 
     if ($bodyToken === false) {
       echo 'Error in JSON encoding: ' . json_last_error_msg();
@@ -44,9 +44,8 @@ class AccessTokenBRIAPI implements AccessTokenBRIAPIInterface {
     $response = curl_exec($chPost);
     curl_close($chPost);
 
-    echo $response;
     $jsonPost = json_decode($response, true);
 
-    return '';
+    return $jsonPost['access_token'];
   }
 }

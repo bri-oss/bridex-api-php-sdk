@@ -2,34 +2,33 @@
 
 namespace BRI\Brizzi;
 
+use BodyValidateCardNumber;
 use BRI\Util\ExecuteCurlRequest;
 use BRI\Util\PrepareRequest;
 use BRI\Util\VarNumber;
+use InvalidArgumentException;
 
 interface BrizziInterface {
   public function validateCardNumber(
     string $clientSecret,
-    string $partnerId,
     string $baseUrl,
     string $accessToken,
-    string $channelId,
     string $timestamp,
+    array $body
   ): string;
   public function topupDeposit(
     string $clientSecret,
-    string $partnerId,
     string $baseUrl,
     string $accessToken,
-    string $channelId,
     string $timestamp,
+    array $body
   ): string;
   public function checkTopupStatus(
     string $clientSecret,
-    string $partnerId,
     string $baseUrl,
     string $accessToken,
-    string $channelId,
     string $timestamp,
+    array $body
   ): string;
 }
 
@@ -49,26 +48,22 @@ class Brizzi implements BrizziInterface {
 
   public function validateCardNumber(
     string $clientSecret,
-    string $partnerId,
     string $baseUrl,
     string $accessToken,
-    string $channelId,
     string $timestamp,
+    array $body
   ): string {
-    $additionalBody = [
-      'username' => 'test',
-      'brizziCardNo' => '6013500601496673'
-    ];
+    if (!isset($body['username']) || !isset($body['brizziCardNo'])) {
+      throw new InvalidArgumentException('Both username and brizziCardNo are required.');
+    }
 
     list($bodyRequest, $headersRequest) = $this->prepareRequest->Brizzi(
       $clientSecret,
-      $partnerId,
       $this->pathValidateCardNumber,
       $accessToken,
-      $channelId,
       $this->externalId,
       $timestamp,
-      json_encode($additionalBody, true)
+      json_encode($body, true)
     );
 
     $response = $this->executeCurlRequest->execute(
@@ -83,27 +78,22 @@ class Brizzi implements BrizziInterface {
 
   public function topupDeposit(
     string $clientSecret,
-    string $partnerId,
     string $baseUrl,
     string $accessToken,
-    string $channelId,
     string $timestamp,
+    array $body
   ): string {
-    $additionalBody = [
-      'username' => 'test',
-      'brizziCardNo' => '6013500601496673',
-      'amount' => '5123.00'
-    ];
+    if (!isset($body['username']) || !isset($body['brizziCardNo']) || !isset($body['amount'])) {
+      throw new InvalidArgumentException('Both username and brizziCardNo are required.');
+    }
 
     list($bodyRequest, $headersRequest) = $this->prepareRequest->Brizzi(
       $clientSecret,
-      $partnerId,
       $this->pathTopupDeposit,
       $accessToken,
-      $channelId,
       $this->externalId,
       $timestamp,
-      json_encode($additionalBody, true)
+      json_encode($body, true)
     );
 
     $response = $this->executeCurlRequest->execute(
@@ -118,28 +108,22 @@ class Brizzi implements BrizziInterface {
 
   public function checkTopupStatus(
     string $clientSecret,
-    string $partnerId,
     string $baseUrl,
     string $accessToken,
-    string $channelId,
     string $timestamp,
+    array $body
   ): string {
-    $additionalBody = [
-      'username' => 'test',
-      'brizziCardNo' => '6013500601496673',
-      'amount' => '10',
-      'reff' => '1356040'
-    ];
+    if (!isset($body['username']) || !isset($body['brizziCardNo']) || !isset($body['amount']) || !isset($body['reff'])) {
+      throw new InvalidArgumentException('Both username and brizziCardNo are required.');
+    }
 
     list($bodyRequest, $headersRequest) = $this->prepareRequest->Brizzi(
       $clientSecret,
-      $partnerId,
       $this->pathCheckTopupDeposit,
       $accessToken,
-      $channelId,
       $this->externalId,
       $timestamp,
-      json_encode($additionalBody, true)
+      json_encode($body, true)
     );
 
     $response = $this->executeCurlRequest->execute(
@@ -147,7 +131,8 @@ class Brizzi implements BrizziInterface {
       $headersRequest,
       $bodyRequest
     );
-    echo '<pre>'; print_r($headersRequest); echo '</pre>';
+    echo '<pre>'; print_r($headersRequest); echo '</pre>\n';
+    echo '<pre>'; print_r($bodyRequest); echo '</pre>';
 
     return $response;
   }

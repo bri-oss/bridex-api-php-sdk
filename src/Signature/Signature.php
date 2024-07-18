@@ -19,4 +19,14 @@ final class Signature
       $stringToSign = "{$method}:{$path}:{$accessToken}:{$sha256}:{$timestamp}";
       return hash_hmac("sha512", $stringToSign, $clientSecret);
    }
+
+   // generate signature BRI API
+   public function generateBRIAPI(
+      string $clientSecret, string $method, string $timestamp, string $accessToken, string $bodyRequest, string $path
+   ): string {
+      $stringToSign = "path=$path&verb=$method&token=Bearer $accessToken&timestamp=$timestamp&body=$bodyRequest";
+
+      echo "$stringToSign";
+      return base64_encode(hash_hmac("sha256", $stringToSign, $clientSecret, true));
+   }
 }
