@@ -5,6 +5,7 @@ namespace BRI\Valas;
 use BRI\Util\ExecuteCurlRequest;
 use BRI\Util\PrepareRequest;
 use BRI\Util\VarNumber;
+use CURLFile;
 
 interface ValasInterface {
   public function infoKursCounter(
@@ -311,9 +312,12 @@ class Valas implements ValasInterface {
     string $channelId,
     string $timestamp
   ): string {
+    $filePath = '/path/to/your/file.txt';
+    $fileName = basename($filePath);
+
     $additionalBody = [
-      'fileData' => "{Inputan Base64}",
-      'fileName' => 'fileNameTest'
+      'fileData' => new CURLFile($filePath),
+      'fileName' => $fileName
     ];
 
     list($bodyRequest, $headersRequest) = $this->prepareRequest->Valas(
