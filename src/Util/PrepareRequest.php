@@ -165,4 +165,32 @@ class PrepareRequest {
 
     return [$additionalBody, $headersRequest];
   }
+
+  public function QrisMPMDynamic(
+    string $clientSecret,
+    string $partnerId,
+    string $path,
+    string $accessToken,
+    string $channelId,
+    string $externalId,
+    string $timestamp,
+    ?string $additionalBody = null,
+    ?string $method = 'POST'
+  ): array {
+    // Signature request
+    $signatureRequest = (new Signature())->generateRequest($clientSecret, $method, $timestamp, $accessToken, $additionalBody, $path);
+
+    // Header request
+    $headersRequest = [
+      "X-TIMESTAMP: $timestamp",
+      "X-SIGNATURE: $signatureRequest",
+      "Content-Type: " . self::CONTENT_TYPE,
+      "X-PARTNER-ID: $partnerId",
+      "CHANNEL-ID: " . $channelId,
+      "X-EXTERNAL-ID: $externalId",
+      "Authorization: Bearer " . $accessToken,
+    ];
+
+    return [$additionalBody, $headersRequest];
+  }
 }
