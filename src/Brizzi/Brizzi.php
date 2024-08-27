@@ -2,7 +2,6 @@
 
 namespace BRI\Brizzi;
 
-use BodyValidateCardNumber;
 use BRI\Util\ExecuteCurlRequest;
 use BRI\Util\PrepareRequest;
 use BRI\Util\VarNumber;
@@ -71,7 +70,6 @@ class Brizzi implements BrizziInterface {
       $headersRequest,
       $bodyRequest
     );
-    echo '<pre>'; print_r($headersRequest); echo '</pre>';
 
     return $response;
   }
@@ -84,7 +82,7 @@ class Brizzi implements BrizziInterface {
     array $body
   ): string {
     if (!isset($body['username']) || !isset($body['brizziCardNo']) || !isset($body['amount'])) {
-      throw new InvalidArgumentException('Both username and brizziCardNo are required.');
+      throw new InvalidArgumentException('Both username, amount, and brizziCardNo are required.');
     }
 
     list($bodyRequest, $headersRequest) = $this->prepareRequest->Brizzi(
@@ -101,7 +99,6 @@ class Brizzi implements BrizziInterface {
       $headersRequest,
       $bodyRequest
     );
-    echo '<pre>'; print_r($headersRequest); echo '</pre>';
 
     return $response;
   }
@@ -114,7 +111,7 @@ class Brizzi implements BrizziInterface {
     array $body
   ): string {
     if (!isset($body['username']) || !isset($body['brizziCardNo']) || !isset($body['amount']) || !isset($body['reff'])) {
-      throw new InvalidArgumentException('Both username and brizziCardNo are required.');
+      throw new InvalidArgumentException('Both username, amount, reff and brizziCardNo are required.');
     }
 
     list($bodyRequest, $headersRequest) = $this->prepareRequest->Brizzi(
@@ -131,8 +128,6 @@ class Brizzi implements BrizziInterface {
       $headersRequest,
       $bodyRequest
     );
-    echo '<pre>'; print_r($headersRequest); echo '</pre>\n';
-    echo '<pre>'; print_r($bodyRequest); echo '</pre>';
 
     return $response;
   }

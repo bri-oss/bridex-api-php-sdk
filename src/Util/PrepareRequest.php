@@ -148,6 +148,7 @@ class PrepareRequest {
     string $path,
     string $accessToken,
     string $timestamp,
+    string $partnerCode,
     ?string $additionalBody = null,
     ?string $method = 'POST'
   ): array {
@@ -159,7 +160,7 @@ class PrepareRequest {
       "BRI-Timestamp: $timestamp",
       "BRI-Signature: $signatureRequest",
       "Content-Type: " . self::CONTENT_TYPE,
-      "partnerCode: 12345",
+      "partnerCode: $partnerCode",
       "Authorization: Bearer " . $accessToken,
     ];
 

@@ -6,71 +6,72 @@ use BRI\Util\ExecuteCurlRequest;
 use BRI\Util\PrepareRequest;
 use BRI\Util\VarNumber;
 use CURLFile;
+use InvalidArgumentException;
 
 interface ValasInterface {
   public function infoKursCounter(
     string $clientSecret,
-    string $partnerId,
     string $baseUrl,
     string $accessToken,
-    string $channelId,
-    string $timestamp
+    string $timestamp,
+    array $body,
+    string $partnerCode
   ): string;
   public function valasNegoInfo(
     string $clientSecret,
-    string $partnerId,
     string $baseUrl,
     string $accessToken,
-    string $channelId,
-    string $timestamp
+    string $timestamp,
+    array $body,
+    string $partnerCode
   ): string;
   public function checkDealCode(
     string $clientSecret,
-    string $partnerId,
     string $baseUrl,
     string $accessToken,
-    string $channelId,
-    string $timestamp
+    string $timestamp,
+    string $dealCode,
+    string $partnerCode
   ): string;
   public function transactionValas(
     string $clientSecret,
-    string $partnerId,
     string $baseUrl,
     string $accessToken,
-    string $channelId,
-    string $timestamp
+    string $timestamp,
+    array $body,
+    string $partnerCode
   ): string;
   public function transactionValasNonNego(
     string $clientSecret,
-    string $partnerId,
     string $baseUrl,
     string $accessToken,
-    string $channelId,
-    string $timestamp
+    string $timestamp,
+    array $body,
+    string $partnerCode
   ): string;
   public function inquiryTransaction(
     string $clientSecret,
-    string $partnerId,
     string $baseUrl,
     string $accessToken,
-    string $channelId,
-    string $timestamp
+    string $timestamp,
+    array $body,
+    string $partnerCode
   ): string;
   public function inquiryLimit(
     string $clientSecret,
-    string $partnerId,
     string $baseUrl,
     string $accessToken,
-    string $channelId,
-    string $timestamp
+    string $timestamp,
+    string $debitAccount,
+    string $partnerCode
   ): string;
   public function uploadUnderlying(
     string $clientSecret,
-    string $partnerId,
     string $baseUrl,
     string $accessToken,
-    string $channelId,
-    string $timestamp
+    string $timestamp,
+    string $partnerCode,
+    array $body = null
   ): string;
 }
 
@@ -93,19 +94,19 @@ class Valas implements ValasInterface {
     $this->prepareRequest = new PrepareRequest();
   }
 
-  public function infoKursCounter(string $clientSecret, string $partnerId, string $baseUrl, string $accessToken, string $channelId, string $timestamp): string
+  public function infoKursCounter(string $clientSecret, string $baseUrl, string $accessToken, string $timestamp, array $body, string $partnerCode): string
   {
-    $additionalBody = [
-      'dealtCurrency' => 'USD',
-      'counterCurrency' => 'IDR',
-    ];
+    if (!isset($body['dealtCurrency']) || !isset($body['counterCurrency'])) {
+      throw new InvalidArgumentException('Both dealtCurrency and counterCurrency are required.');
+    }
 
     list($bodyRequest, $headersRequest) = $this->prepareRequest->Valas(
       $clientSecret,
       $this->pathInfoKursCounter,
       $accessToken,
       $timestamp,
-      json_encode($additionalBody, true)
+      $partnerCode,
+      json_encode($body, true)
     );
 
     $response = $this->executeCurlRequest->execute(
@@ -119,23 +120,23 @@ class Valas implements ValasInterface {
 
   public function valasNegoInfo(
     string $clientSecret,
-    string $partnerId,
     string $baseUrl,
     string $accessToken,
-    string $channelId,
-    string $timestamp
+    string $timestamp,
+    array $body,
+    string $partnerCode
   ): string {
-    $additionalBody = [
-      'dealtCurrency' => 'USD',
-      'counterCurrency' => 'IDR',
-    ];
+    if (!isset($body['dealtCurrency']) || !isset($body['counterCurrency'])) {
+      throw new InvalidArgumentException('Both dealtCurrency and counterCurrency are required.');
+    }
 
     list($bodyRequest, $headersRequest) = $this->prepareRequest->Valas(
       $clientSecret,
       $this->pathValasNegoInfo,
       $accessToken,
       $timestamp,
-      json_encode($additionalBody, true)
+      $partnerCode,
+      json_encode($body, true)
     );
 
     $response = $this->executeCurlRequest->execute(
@@ -149,14 +150,14 @@ class Valas implements ValasInterface {
 
   public function checkDealCode(
     string $clientSecret,
-    string $partnerId,
     string $baseUrl,
     string $accessToken,
-    string $channelId,
-    string $timestamp
+    string $timestamp,
+    string $dealCode,
+    string $partnerCode
   ): string {
     $additionalBody = [
-      'dealCode' => 'O0003540',
+      'dealCode' => $dealCode,
     ];
 
     list($bodyRequest, $headersRequest) = $this->prepareRequest->Valas(
@@ -164,6 +165,7 @@ class Valas implements ValasInterface {
       $this->pathCheckDealCode,
       $accessToken,
       $timestamp,
+      $partnerCode,
       json_encode($additionalBody, true)
     );
 
@@ -178,27 +180,27 @@ class Valas implements ValasInterface {
 
   public function transactionValas(
     string $clientSecret,
-    string $partnerId,
     string $baseUrl,
     string $accessToken,
-    string $channelId,
-    string $timestamp
+    string $timestamp,
+    array $body,
+    string $partnerCode
   ): string {
-    $additionalBody = [
-      'debitAccount' => '030702000141509',
-      'creditAccount' => '034401083104504',
-      'dealCode' => 'O0003540',
-      'remark' => '374628374',
-      'partnerReferenceNo' => '6278163827789',
-      'underlyingReference' => ""
-    ];
+    if (
+      !isset($body['debitAccount']) ||
+      !isset($body['creditAccount']) ||
+      !isset($body['dealCode']) ||
+      !isset($body['remark'])) {
+      throw new InvalidArgumentException('Both debitAccount, creditAccount, dealCode, remark, partnerReferenceNo, underlyingReference are required.');
+    }
 
     list($bodyRequest, $headersRequest) = $this->prepareRequest->Valas(
       $clientSecret,
       $this->pathTransactionValas,
       $accessToken,
       $timestamp,
-      json_encode($additionalBody, true)
+      $partnerCode,
+      json_encode($body, true)
     );
 
     $response = $this->executeCurlRequest->execute(
@@ -212,28 +214,29 @@ class Valas implements ValasInterface {
 
   public function transactionValasNonNego(
     string $clientSecret,
-    string $partnerId,
     string $baseUrl,
     string $accessToken,
-    string $channelId,
-    string $timestamp
+    string $timestamp,
+    array $body,
+    string $partnerCode
   ): string {
-    $additionalBody = [
-      'debitAccount' => '030702000141509',
-      'creditAccount' => '034401083104504',
-      'debitCurrency' => 'USD',
-      'creditCurrency' => 'IDR',
-      'debitAmount' => '3.00',
-      'remark' => '374628374',
-      'partnerReferenceNo' => '6278163827120'
-    ];
+    if (
+      !isset($body['debitAccount']) ||
+      !isset($body['creditAccount']) ||
+      !isset($body['debitCurrency']) ||
+      !isset($body['debitAmount']) ||
+      !isset($body['remark']) ||
+      !isset($body['partnerReferenceNo'])) {
+      throw new InvalidArgumentException('Both debitAccount, creditAccount, debitCurrency, debitAmount, remark, and partnerReferenceNo are required.');
+    }
 
     list($bodyRequest, $headersRequest) = $this->prepareRequest->Valas(
       $clientSecret,
       $this->pathTransactionNonNego,
       $accessToken,
       $timestamp,
-      json_encode($additionalBody, true)
+      $partnerCode,
+      json_encode($body, true)
     );
 
     $response = $this->executeCurlRequest->execute(
@@ -247,23 +250,25 @@ class Valas implements ValasInterface {
 
   public function inquiryTransaction(
     string $clientSecret,
-    string $partnerId,
     string $baseUrl,
     string $accessToken,
-    string $channelId,
-    string $timestamp
+    string $timestamp,
+    array $body,
+    string $partnerCode
   ): string {
-    $additionalBody = [
-      'partnerReferenceNo' => '6278163827120',
-      'originalReferenceNo' => '8757771'
-    ];
+    if (
+      !isset($body['originalPartnerReferenceNo']) ||
+      !isset($body['originalReferenceNo'])) {
+      throw new InvalidArgumentException('Both originalPartnerReferenceNo and originalReferenceNo are required.');
+    }
 
     list($bodyRequest, $headersRequest) = $this->prepareRequest->Valas(
       $clientSecret,
       $this->pathInquiryTransaction,
       $accessToken,
       $timestamp,
-      json_encode($additionalBody, true)
+      $partnerCode,
+      json_encode($body, true)
     );
 
     $response = $this->executeCurlRequest->execute(
@@ -277,14 +282,19 @@ class Valas implements ValasInterface {
 
   public function inquiryLimit(
     string $clientSecret,
-    string $partnerId,
     string $baseUrl,
     string $accessToken,
-    string $channelId,
-    string $timestamp
+    string $timestamp,
+    string $debitAccount,
+    string $partnerCode
   ): string {
+    if (
+      !isset($body['debitAccount'])) {
+      throw new InvalidArgumentException('debitAccount is required.');
+    }
+
     $additionalBody = [
-      'debitAccount' => '020602000008513'
+      'debitAccount' => $debitAccount
     ];
 
     list($bodyRequest, $headersRequest) = $this->prepareRequest->Valas(
@@ -292,6 +302,7 @@ class Valas implements ValasInterface {
       $this->pathInquiryLimit,
       $accessToken,
       $timestamp,
+      $partnerCode,
       json_encode($additionalBody, true)
     );
 
@@ -306,26 +317,24 @@ class Valas implements ValasInterface {
 
   public function uploadUnderlying(
     string $clientSecret,
-    string $partnerId,
     string $baseUrl,
     string $accessToken,
-    string $channelId,
-    string $timestamp
+    string $timestamp,
+    string $partnerCode,
+    array $body = null
   ): string {
-    $filePath = '/path/to/your/file.txt';
-    $fileName = basename($filePath);
-
-    $additionalBody = [
-      'fileData' => new CURLFile($filePath),
-      'fileName' => $fileName
-    ];
+    if (
+      !isset($body['fileData']) || !isset($body['fileName'])) {
+      throw new InvalidArgumentException('fileData and fileName is required.');
+    }
 
     list($bodyRequest, $headersRequest) = $this->prepareRequest->Valas(
       $clientSecret,
       $this->pathUploadUnderlying,
       $accessToken,
       $timestamp,
-      json_encode($additionalBody, true)
+      $partnerCode,
+      json_encode($body, true)
     );
 
     $response = $this->executeCurlRequest->execute(

@@ -37,7 +37,8 @@ class GetAccessToken {
 
     if (!file_exists('accessToken.txt') || $this->isTokenExpired('timestamp.txt')) {
       //timestamp
-      $timestamp = (new DateTime('now', new DateTimeZone('Asia/Jakarta')))->format('Y-m-d\TH:i:s.000P');
+      // $timestamp = (new DateTime('now', new DateTimeZone('Asia/Jakarta')))->format('Y-m-d\TH:i:s.000P');
+      $timestamp = (new DateTime('now', new DateTimeZone('Asia/Jakarta')))->format('Y-m-d\TH:i:sP');
 
       //access token
       $accessToken = (new AccessToken(new Signature()))->getAccessToken(

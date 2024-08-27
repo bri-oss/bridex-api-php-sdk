@@ -13,7 +13,8 @@ interface QrisMPMDynamicInterface {
     string $baseUrl,
     string $accessToken,
     string $channelId,
-    string $timestamp
+    string $timestamp,
+    array $body
   ): string;
   public function inquiryPayment(
     string $clientSecret,
@@ -21,7 +22,8 @@ interface QrisMPMDynamicInterface {
     string $baseUrl,
     string $accessToken,
     string $channelId,
-    string $timestamp
+    string $timestamp,
+    array $body
   ): string;
 }
 
@@ -30,6 +32,7 @@ class QrisMPMDynamic implements QrisMPMDynamicInterface {
   private PrepareRequest $prepareRequest;
   private string $externalId;
   private string $pathGenerateQR = '/v1.1/qr-dynamic-mpm/qr-mpm-generate-qr';
+  private string $pathInquiryPayment = '/v1.1/qr-dynamic-mpm/qr-mpm-query';
 
   public function __construct() {
     $this->executeCurlRequest = new ExecuteCurlRequest();
@@ -43,18 +46,9 @@ class QrisMPMDynamic implements QrisMPMDynamicInterface {
     string $baseUrl,
     string $accessToken,
     string $channelId,
-    string $timestamp
+    string $timestamp,
+    array $body
   ): string {
-    $additionalBody = [
-      'partnerReferenceNo' => '1234567890133',
-      'amount' => (object) [
-        'value' => '123456.00',
-        'currency' => 'IDR',
-      ],
-      'merchantId' => '00007100010926',
-      'terminalId' => '213141251124'
-    ];
-
     list($bodyRequest, $headersRequest) = $this->prepareRequest->QrisMPMDynamic(
       $clientSecret,
       $partnerId,
@@ -63,10 +57,8 @@ class QrisMPMDynamic implements QrisMPMDynamicInterface {
       $channelId,
       $this->externalId,
       $timestamp,
-      json_encode($additionalBody, true)
+      json_encode($body, true)
     );
-
-    echo '<pre>'; print_r($headersRequest); echo '</pre>';
 
     $response = $this->executeCurlRequest->execute(
       "$baseUrl$this->pathGenerateQR",
@@ -83,31 +75,24 @@ class QrisMPMDynamic implements QrisMPMDynamicInterface {
     string $baseUrl,
     string $accessToken,
     string $channelId,
-    string $timestamp
+    string $timestamp,
+    array $body
   ): string {
-    $additionalBody = [
-      'partnerReferenceNo' => '1234567890133',
-      'serviceCode' => '17',
-      'additionalInfo' => (object) [
-        'terminalId' => '100492'
-      ]
-    ];
+    
 
     list($bodyRequest, $headersRequest) = $this->prepareRequest->QrisMPMDynamic(
       $clientSecret,
       $partnerId,
-      $this->pathGenerateQR,
+      $this->pathInquiryPayment,
       $accessToken,
       $channelId,
       $this->externalId,
       $timestamp,
-      json_encode($additionalBody, true)
+      json_encode($body, true)
     );
 
-    echo '<pre>'; print_r($headersRequest); echo '</pre>';
-
     $response = $this->executeCurlRequest->execute(
-      "$baseUrl$this->pathGenerateQR",
+      "$baseUrl$this->pathInquiryPayment",
       $headersRequest,
       $bodyRequest
     );

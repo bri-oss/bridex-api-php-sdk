@@ -26,7 +26,6 @@ final class Signature
    ): string {
       $stringToSign = "path=$path&verb=$method&token=Bearer $accessToken&timestamp=$timestamp&body=$bodyRequest";
 
-      echo "$stringToSign";
       return base64_encode(hash_hmac("sha256", $stringToSign, $clientSecret, true));
    }
 }
