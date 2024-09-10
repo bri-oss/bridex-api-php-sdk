@@ -288,11 +288,6 @@ class Valas implements ValasInterface {
     string $debitAccount,
     string $partnerCode
   ): string {
-    if (
-      !isset($body['debitAccount'])) {
-      throw new InvalidArgumentException('debitAccount is required.');
-    }
-
     $additionalBody = [
       'debitAccount' => $debitAccount
     ];
