@@ -3,33 +3,32 @@
 namespace BRI\Util;
 
 use BRI\Signature\Signature;
+use DateTime;
 
 class PrepareRequest {
   private const METHOD = 'POST';
   private const CONTENT_TYPE = 'application/json';
 
   public function VABrivaOnline(
-    string $clientSecret,
     string $partnerId,
-    string $path,
+    string $clientId,
+    string $clientSecret,
     string $accessToken,
-    string $channelId,
-    string $externalId,
-    string $timestamp,
     ?string $additionalBody = null
   ) {
-    // Signature request
-    $signatureRequest = (new Signature())->generateRequest($clientSecret, self::METHOD, $timestamp, $accessToken, $additionalBody, $path);
+    $timestamp = (new DateTime('now'))->format('Y-m-d H:i:s');
+    
+    $stringToSign = "{$partnerId}|{$timestamp}";
+    $signatureToken = hash_hmac("sha256", $stringToSign, $clientSecret);
 
     // Header request
     $headersRequest = [
-      "X-TIMESTAMP: $timestamp",
-      "X-SIGNATURE: $signatureRequest",
       "Content-Type: " . self::CONTENT_TYPE,
-      "X-PARTNER-ID: $partnerId",
-      "CHANNEL-ID: " . $channelId,
-      "X-EXTERNAL-ID: $externalId",
-      "Authorization: Bearer " . $accessToken,
+      "Authorization: $accessToken",
+      "x-partner-id: $partnerId",
+      "X-TIMESTAMP: $timestamp",
+      "X-SIGNATURE: $signatureToken",
+      "X-CLIENT-KEY: $clientId"
     ];
 
     return [$additionalBody, $headersRequest];

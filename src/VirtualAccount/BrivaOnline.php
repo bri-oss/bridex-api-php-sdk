@@ -2,106 +2,67 @@
 namespace BRI\VirtualAccount;
 
 use BRI\Util\ExecuteCurlRequest;
-use BRI\Util\VarNumber;
 use BRI\Util\PrepareRequest;
 
 interface BrivaOnlineInterface {
   public function inquiry(
-    string $clientSecret,
     string $partnerId,
+    string $clientId,
+    string $clientSecret,
     string $baseUrl,
     string $accessToken,
-    string $channelId,
-    string $timestamp,
-    string $partnerServiceId,
-    string $customerNo,
-    string $inquiryRequestId,
-    ?string $value,
-    ?string $currency,
-    ?string $trxDateInit,
-    ?int $channelCode,
-    ?string $sourceBankCode,
-    ?string $passApp,
-    ?string $idApp
   ): string;
 
   public function payment(
-    string $clientSecret,
     string $partnerId,
+    string $clientId,
+    string $clientSecret,
     string $baseUrl,
     string $accessToken,
-    string $channelId,
-    string $timestamp,
-    string $partnerServiceId,
-    string $customerNo,
-    string $inquiryRequestId,
-    ?string $value,
-    ?string $currency,
-    ?string $trxDateInit,
-    ?int $channelCode,
-    ?string $sourceBankCode,
-    ?string $passApp,
-    ?string $idApp
   ): string;
 }
 
 class BrivaOnline implements BrivaOnlineInterface {
   private ExecuteCurlRequest $executeCurlRequest;
   private PrepareRequest $prepareRequest;
-  private string $externalId;
-  private string $pathInquiry = '/v2.0/transfer-va/inquiry';
-  private string $pathPayment = '/v2.0/transfer-va/payment';
+  private string $pathInquiry = '/v1/transfer-va/inquiry';
+  private string $pathPayment = '/v1/transfer-va/payment';
 
   public function __construct() {
     $this->executeCurlRequest = new ExecuteCurlRequest();
-    $this->externalId = (new VarNumber())->generateVar(9);
     $this->prepareRequest = new PrepareRequest();
   }
 
   public function inquiry(
-    string $clientSecret,
     string $partnerId,
+    string $clientId,
+    string $clientSecret,
     string $baseUrl,
     string $accessToken,
-    string $channelId,
-    string $timestamp,
-    string $partnerServiceId,
-    string $customerNo,
-    string $inquiryRequestId,
-    ?string $value,
-    ?string $currency,
-    ?string $trxDateInit,
-    ?int $channelCode,
-    ?string $sourceBankCode,
-    ?string $passApp,
-    ?string $idApp
   ): string {
     $additionalBody = [
-      'partnerServiceId' => $partnerServiceId,
-      'customerNo' => (string) $customerNo,
-      'virtualAccountNo' => "$partnerServiceId$customerNo",
+      'partnerServiceId' => "   77777",
+      'customerNo' => "0000000000001",
+      'virtualAccountNo' => "          777770000000000001",
+      'trxDateInit' => "2021-11-25T22:01:07+07:00", //'optional',
+      'channelCode' => 1, //'optional',
+      'sourceBankCode' => "002",//optional
       'amount' => (object) [
-        'value' => $value,
-        'currency' => $currency
+        'value' => "200000.2",
+        'currency' => "IDR"
       ], // optional
-      'trxDateInit' => $trxDateInit, //'optional',
-      'channelCode' => $channelCode, //'optional',
-      'sourceBankCode' => $sourceBankCode,//optional
-      'passApp' => $passApp, //optional
-      'inquiryRequestId' => $inquiryRequestId,
+      'passApp' => "b7aee423dc7489dfa868426e5c950c677925", //optional
+      'inquiryRequestId' => "e3bcb9a2-e253-40c6-aa77-d72cc138b744",
       'additionalInfo' => (object) [
-        'idApp' => $idApp //optional
+        'idApp' => "TEST1234" //optional
       ]
     ];
 
     list($bodyRequest, $headersRequest) = $this->prepareRequest->VABrivaOnline(
-      $clientSecret,
       $partnerId,
-      $this->pathInquiry,
+      $clientId,
+      $clientSecret,
       $accessToken,
-      $channelId,
-      $this->externalId,
-      $timestamp,
       json_encode($additionalBody, true)
     );
 
@@ -116,49 +77,37 @@ class BrivaOnline implements BrivaOnlineInterface {
   }
 
   public function payment(
-    string $clientSecret,
     string $partnerId,
+    string $clientId,
+    string $clientSecret,
     string $baseUrl,
     string $accessToken,
-    string $channelId,
-    string $timestamp,
-    string $partnerServiceId,
-    string $customerNo,
-    string $inquiryRequestId,
-    ?string $value,
-    ?string $currency,
-    ?string $trxDateInit,
-    ?int $channelCode,
-    ?string $sourceBankCode,
-    ?string $passApp,
-    ?string $idApp
   ): string {
     $additionalBody = [
-      'partnerServiceId' => $partnerServiceId,
-      'customerNo' => (string) $customerNo,
-      'virtualAccountNo' => "$partnerServiceId$customerNo",
-      'amount' => (object) [
-        'value' => $value,
-        'currency' => $currency
+      'partnerServiceId' => "   77777",
+      'customerNo' => "0000000000001",
+      'virtualAccountNo' => "          777770000000000001",
+      'virtualAccountName' => "John Doe",
+      'trxDateInit' => "2021-11-25T22:01:07+07:00", //'optional',
+      'channelCode' => 1, //'optional',
+      'sourceBankCode' => "002",//optional
+      'trxId' => "2132902068917559061",
+      'paidAmount' => (object) [
+        'value' => "200000.2",
+        'currency' => "IDR"
       ], // optional
-      'trxDateInit' => $trxDateInit, //'optional',
-      'channelCode' => $channelCode, //'optional',
-      'sourceBankCode' => $sourceBankCode,//optional
-      'passApp' => $passApp, //optional
-      'inquiryRequestId' => $inquiryRequestId,
+      'paymentRequestId' => "e3bcb9a2-e253-40c6-aa77-d72cc138b744", //optional
       'additionalInfo' => (object) [
-        'idApp' => $idApp //optional
+        'idApp' => "TEST", //optional,
+        'passApp' => "b7aee423dc7489dfa868426e5c950c677925f3b9"
       ]
     ];
 
     list($bodyRequest, $headersRequest) = $this->prepareRequest->VABrivaOnline(
-      $clientSecret,
       $partnerId,
-      $this->pathPayment,
+      $clientId,
+      $clientSecret,
       $accessToken,
-      $channelId,
-      $this->externalId,
-      $timestamp,
       json_encode($additionalBody, true)
     );
 
