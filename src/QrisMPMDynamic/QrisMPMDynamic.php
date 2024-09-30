@@ -78,7 +78,6 @@ class QrisMPMDynamic implements QrisMPMDynamicInterface {
     string $timestamp,
     array $body
   ): string {
-    
 
     list($bodyRequest, $headersRequest) = $this->prepareRequest->QrisMPMDynamic(
       $clientSecret,

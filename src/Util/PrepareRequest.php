@@ -193,4 +193,25 @@ class PrepareRequest {
 
     return [$additionalBody, $headersRequest];
   }
+
+  public function CardlessCashWithdrawal(
+    string $clientId,
+    string $secretKey,
+    ?string $additionalBody = null
+  ) {
+    $timestamp = (new DateTime('now'))->format('Y-m-d H:i:s');
+    
+    $stringToSign = "{$clientId}|{$timestamp}";
+    $signatureToken = hash_hmac("sha256", $stringToSign, $secretKey);
+
+    // Header request
+    $headersRequest = [
+      "Content-Type: " . self::CONTENT_TYPE,
+      "X-TIMESTAMP: $timestamp",
+      "X-SIGNATURE: $signatureToken",
+      "X-CLIENT-KEY: $clientId"
+    ];
+
+    return [$additionalBody, $headersRequest];
+  }
 }
