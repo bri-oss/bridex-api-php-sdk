@@ -26,15 +26,17 @@ class AuthToken implements AuthTokenInterface {
     string $secretKey
   ): string {
     $body = [
-      "providerId" => 'client_credentials',
-      "secretKey" => 'PXXQKV0HYVCJAsriOPQ6WSwK4S2lLi5Z'
+      "providerId" => $providerId,
+      "secretKey" => $secretKey
     ];
 
     $bodyRequest = json_encode($body, true);
 
     $response = $this->executeCurlRequest->execute(
       "$baseUrl$this->path",
-      [''],
+      [
+        "Content-Type: application/json"
+      ],
       $bodyRequest,
       'POST'
     );
