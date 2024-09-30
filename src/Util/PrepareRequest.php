@@ -250,4 +250,28 @@ class PrepareRequest {
 
     return [$additionalBody, $headersRequest];
   }
+
+  public function DirectDebitOutbound(
+    string $clientId,
+    string $clientSecret,
+    string $accessToken,
+    ?string $additionalBody = null
+  ): array {
+    $timestamp = (new DateTime('now'))->format('Y-m-d H:i:s');
+
+    $stringToSign = "{$clientId}|{$timestamp}";
+    $signatureToken = hash_hmac("sha256", $stringToSign, $clientSecret);
+
+    // Header request
+    $headersRequest = [
+      "Content-Type: " . self::CONTENT_TYPE,
+      "X-TIMESTAMP: $timestamp",
+      "X-SIGNATURE: $signatureToken",
+      "X-CLIENT-KEY: $clientId",
+      "x-partner-id: $clientId",
+      "Authorization: $accessToken",
+    ];
+
+    return [$additionalBody, $headersRequest];
+  }
 }

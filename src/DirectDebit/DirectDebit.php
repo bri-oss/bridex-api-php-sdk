@@ -35,6 +35,18 @@ interface DirectDebitInterface {
     string $timestamp,
     array $body
   ): string;
+  public function paymentNotify(
+    string $baseUrl,
+    string $clientId,
+    string $clientSecret,
+    string $accessToken
+  ): string;
+  public function refundNotify(
+    string $baseUrl,
+    string $clientId,
+    string $clientSecret,
+    string $accessToken
+  ): string;
 }
 
 class DirectDebit implements DirectDebitInterface {
@@ -44,6 +56,8 @@ class DirectDebit implements DirectDebitInterface {
   private string $pathPayment = '/snap/v2.0/debit/payment-host-to-host';
   private string $pathPaymentStatus = '/snap/v2.0/debit/status';
   private string $pathrefundPayment = '/snap/v2.0/debit/refund';
+  private string $pathPaymentNotify = '/snap/v2.0/debit/notify';
+  private string $pathRefundNotify = '/snap/v2.0/debit/notify';
 
   public function __construct() {
     $this->executeCurlRequest = new ExecuteCurlRequest();
@@ -148,6 +162,82 @@ class DirectDebit implements DirectDebitInterface {
       "$baseUrl$this->pathrefundPayment",
       $headersRequest,
       $bodyRequest
+    );
+
+    return $response;
+  }
+
+  public function paymentNotify(
+    string $baseUrl,
+    string $clientId,
+    string $clientSecret,
+    string $accessToken
+  ): string {
+    $additionalBody = [
+      'originalPartnerReferenceNo' => '202010290000000000056',
+      'originalReferenceNo' => '2020102900000000000009',
+      'amount' => (object) [
+        'value' => '10000.00',
+        'currency' => 'IDR'
+      ],
+      'latestTransactionStatus' => '00',
+      'transactionStatusDesc' => 'success',
+      'additionalInfo' => (object) [
+        'merchantTrxid' => '30220107504',
+        'remarks' => ''
+      ]
+      ];
+
+      list($bodyRequest, $headersRequest) = $this->prepareRequest->DirectDebitOutbound(
+      $clientId,
+      $clientSecret,
+      $accessToken,
+      json_encode($additionalBody, true)
+    );
+
+    $response = $this->executeCurlRequest->execute(
+      "$baseUrl$this->pathPaymentNotify",
+      $headersRequest,
+      $bodyRequest,
+      'POST'
+    );
+
+    return $response;
+  }
+
+  
+  public function refundNotify(
+    string $baseUrl,
+    string $clientId,
+    string $clientSecret,
+    string $accessToken
+  ): string {
+    $additionalBody = [
+      'originalPartnerReferenceNo' => '202010290000000000056',
+      'originalReferenceNo' => '2020102900000000000009',
+      'amount' => (object) [
+        'value' => '10000.00',
+        'currency' => 'IDR'
+      ],
+      'latestTransactionStatus' => '00',
+      'transactionStatusDescription' => 'success',
+      'additionalInfo' => (object) [
+        'refundId' => '528786398613',
+      ]
+      ];
+
+      list($bodyRequest, $headersRequest) = $this->prepareRequest->DirectDebitOutbound(
+      $clientId,
+      $clientSecret,
+      $accessToken,
+      json_encode($additionalBody, true)
+    );
+
+    $response = $this->executeCurlRequest->execute(
+      "$baseUrl$this->pathRefundNotify",
+      $headersRequest,
+      $bodyRequest,
+      'POST'
     );
 
     return $response;
