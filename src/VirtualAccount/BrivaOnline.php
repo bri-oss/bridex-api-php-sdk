@@ -10,7 +10,7 @@ interface BrivaOnlineInterface {
     string $clientId,
     string $clientSecret,
     string $baseUrl,
-    string $accessToken,
+    string $accessToken
   ): string;
 
   public function payment(
@@ -18,7 +18,7 @@ interface BrivaOnlineInterface {
     string $clientId,
     string $clientSecret,
     string $baseUrl,
-    string $accessToken,
+    string $accessToken
   ): string;
 }
 
@@ -38,7 +38,7 @@ class BrivaOnline implements BrivaOnlineInterface {
     string $clientId,
     string $clientSecret,
     string $baseUrl,
-    string $accessToken,
+    string $accessToken
   ): string {
     $additionalBody = [
       'partnerServiceId' => "   77777",
@@ -81,7 +81,7 @@ class BrivaOnline implements BrivaOnlineInterface {
     string $clientId,
     string $clientSecret,
     string $baseUrl,
-    string $accessToken,
+    string $accessToken
   ): string {
     $additionalBody = [
       'partnerServiceId' => "   77777",
