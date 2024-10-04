@@ -17,7 +17,7 @@ interface NotifyPaymentInterface
     string $latitude,
     string $longitude,
     string $channelId,
-    string $origin,
+    string $origin
   ): string;
 }
 
@@ -43,7 +43,7 @@ class NotifyPayment implements NotifyPaymentInterface
     string $latitude,
     string $longitude,
     string $channelId,
-    string $origin,
+    string $origin
   ): string {
     $additionalBody = [
       "originalReferenceNo" => "2020102977770000000009",
