@@ -83,17 +83,23 @@ class GetAccessToken {
 
   public function getMockOutbound(
     string $clientId,
-    string $clientSecret,
-    string $baseUrl
+    string $baseUrl,
+    string $privateKey
   ): string {
-    $timestamp = (new DateTime('now'))->format('Y-m-d H:i:s');
+    $date = new DateTime('now', new DateTimeZone('Asia/Jakarta'));
+
+    // Tambahkan milidetik secara manual
+    $milliseconds = sprintf('%03d', round(microtime(true) * 1000) % 1000);
+
+    // Format ke ISO 8601 dengan menambahkan milidetik
+    $timestamp = $date->format("Y-m-d\TH:i:s") . ".$milliseconds" . $date->format("P");
 
     $accessToken = (new AccessTokenMockOutbound(new Signature()))->getAccessToken(
       $clientId,
-      $clientSecret,
       $timestamp,
       $baseUrl,
       $this->accessTokenMockOutbound,
+      $privateKey
     );
 
     file_put_contents('accessToken.txt', $accessToken);

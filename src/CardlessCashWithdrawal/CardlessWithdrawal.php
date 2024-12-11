@@ -9,7 +9,8 @@ interface CardlessWithdrawalInterface {
   public function cardlessWithdrawal(
     string $baseUrl,
     string $clientId,
-    string $secretKey
+    string $secretKey,
+    string $accessToken
   ): string;
 }
 
@@ -26,7 +27,8 @@ class CardlessWithdrawal implements CardlessWithdrawalInterface {
   public function cardlessWithdrawal(
     string $baseUrl,
     string $clientId,
-    string $secretKey
+    string $secretKey,
+    string $accessToken
   ): string {
     $additionalBody = [
       "token" => "920331011",
@@ -38,6 +40,9 @@ class CardlessWithdrawal implements CardlessWithdrawalInterface {
     list($bodyRequest, $headersRequest) = $this->prepareRequest->CardlessCashWithdrawal(
       $clientId,
       $secretKey,
+      $accessToken,
+      "$baseUrl$this->path",
+      "POST",
       json_encode($additionalBody, true)
     );
 

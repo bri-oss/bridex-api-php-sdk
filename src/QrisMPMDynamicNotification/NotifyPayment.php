@@ -17,7 +17,8 @@ interface NotifyPaymentInterface
     string $latitude,
     string $longitude,
     string $channelId,
-    string $origin
+    string $origin,
+    string $accessToken
   ): string;
 }
 
@@ -43,7 +44,8 @@ class NotifyPayment implements NotifyPaymentInterface
     string $latitude,
     string $longitude,
     string $channelId,
-    string $origin
+    string $origin,
+    string $accessToken
   ): string {
     $additionalBody = [
       "originalReferenceNo" => "2020102977770000000009",
@@ -77,6 +79,9 @@ class NotifyPayment implements NotifyPaymentInterface
       $longitude,
       $channelId,
       $origin,
+      $accessToken,
+      "$baseUrl$this->path",
+      "POST",
       json_encode($additionalBody, true)
     );
 

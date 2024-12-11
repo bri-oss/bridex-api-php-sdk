@@ -63,6 +63,8 @@ class BrivaOnline implements BrivaOnlineInterface {
       $clientId,
       $clientSecret,
       $accessToken,
+      "$baseUrl$this->pathInquiry",
+      'POST',
       json_encode($additionalBody, true)
     );
 
@@ -108,6 +110,8 @@ class BrivaOnline implements BrivaOnlineInterface {
       $clientId,
       $clientSecret,
       $accessToken,
+      "$baseUrl$this->pathPayment",
+      'POST',
       json_encode($additionalBody, true)
     );
 

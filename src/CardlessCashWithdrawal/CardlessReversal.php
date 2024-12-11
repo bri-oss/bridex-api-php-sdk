@@ -9,21 +9,27 @@ interface CardlessReversalInterface {
   public function cardlessReversal(
     string $baseUrl,
     string $clientId,
-    string $secretKey
+    string $secretKey,
+    string $accessToken
   ): string;
 }
 
 class CardlessReversal implements CardlessReversalInterface {
   private ExecuteCurlRequest $executeCurlRequest;
   private PrepareRequest $prepareRequest;
-  private string $path = '/v1/cardless/withdrawal';
+  private string $path = '/v1/cardless/reversal';
 
   public function __construct() {
     $this->executeCurlRequest = new ExecuteCurlRequest();
     $this->prepareRequest = new PrepareRequest();
   }
 
-  public function cardlessReversal(string $baseUrl, string $clientId, string $secretKey): string
+  public function cardlessReversal(
+    string $baseUrl,
+    string $clientId,
+    string $secretKey,
+    string $accessToken
+  ): string
   {
     $additionalBody = [
       "token" => "920331011",
@@ -35,7 +41,10 @@ class CardlessReversal implements CardlessReversalInterface {
     list($bodyRequest, $headersRequest) = $this->prepareRequest->CardlessCashWithdrawal(
       $clientId,
       $secretKey,
-      json_encode($additionalBody, true)
+      $accessToken,
+      "$baseUrl$this->path",
+      "POST",
+      json_encode($additionalBody, true),
     );
 
     $response = $this->executeCurlRequest->execute(

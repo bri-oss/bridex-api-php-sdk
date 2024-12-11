@@ -4,6 +4,7 @@ namespace BRI\Util;
 
 use BRI\Signature\Signature;
 use DateTime;
+use DateTimeZone;
 
 class PrepareRequest {
   private const METHOD = 'POST';
@@ -14,20 +15,29 @@ class PrepareRequest {
     string $clientId,
     string $clientSecret,
     string $accessToken,
+    string $url,
+    ?string $method = 'POST',
     ?string $additionalBody = null
   ) {
-    $timestamp = (new DateTime('now'))->format('Y-m-d H:i:s');
-    
-    $stringToSign = "{$partnerId}|{$timestamp}";
-    $signatureToken = hash_hmac("sha256", $stringToSign, $clientSecret);
+    $date = new DateTime('now', new DateTimeZone('UTC'));
+
+    $timestamp = $date->format("Y-m-d\TH:i:s.v\Z");
+
+    $bodyHash = hash("sha256", $additionalBody);
+
+    $requestPath = parse_url($url, PHP_URL_PATH);
+
+    $stringToSign = "$method:$requestPath:$accessToken:$bodyHash:$timestamp";
+
+    $signature = hash_hmac("sha512", $stringToSign, $clientSecret);
 
     // Header request
     $headersRequest = [
       "Content-Type: " . self::CONTENT_TYPE,
-      "Authorization: $accessToken",
+      "Authorization: Bearer $accessToken",
       "x-partner-id: $partnerId",
       "X-TIMESTAMP: $timestamp",
-      "X-SIGNATURE: $signatureToken",
+      "X-SIGNATURE: $signature",
       "X-CLIENT-KEY: $clientId"
     ];
 
@@ -197,19 +207,30 @@ class PrepareRequest {
   public function CardlessCashWithdrawal(
     string $clientId,
     string $secretKey,
+    string $accessToken,
+    string $url,
+    ?string $method = 'POST',
     ?string $additionalBody = null
   ) {
-    $timestamp = (new DateTime('now'))->format('Y-m-d H:i:s');
+    $date = new DateTime('now', new DateTimeZone('UTC'));
 
-    $stringToSign = "{$clientId}|{$timestamp}";
-    $signatureToken = hash_hmac("sha256", $stringToSign, $secretKey);
+    $timestamp = $date->format("Y-m-d\TH:i:s.v\Z");
+
+    $bodyHash = hash("sha256", $additionalBody);
+
+    $requestPath = parse_url($url, PHP_URL_PATH);
+
+    $stringToSign = "$method:$requestPath:$accessToken:$bodyHash:$timestamp";
+
+    $signature = hash_hmac("sha512", $stringToSign, $secretKey);
 
     // Header request
     $headersRequest = [
       "Content-Type: " . self::CONTENT_TYPE,
       "X-TIMESTAMP: $timestamp",
-      "X-SIGNATURE: $signatureToken",
-      "X-CLIENT-KEY: $clientId"
+      "X-SIGNATURE: $signature",
+      "X-CLIENT-KEY: $clientId",
+      "Authorization: Bearer $accessToken"
     ];
 
     return [$additionalBody, $headersRequest];
@@ -225,18 +246,28 @@ class PrepareRequest {
     string $longitude,
     string $channelId,
     string $origin,
+    string $accessToken,
+    string $url,
+    ?string $method = 'POST',
     ?string $additionalBody = null
   ): array {
-    $timestamp = (new DateTime('now'))->format('Y-m-d H:i:s');
+    $date = new DateTime('now', new DateTimeZone('UTC'));
 
-    $stringToSign = "{$clientId}|{$timestamp}";
-    $signatureToken = hash_hmac("sha256", $stringToSign, $secretKey);
+    $timestamp = $date->format("Y-m-d\TH:i:s.v\Z");
+
+    $bodyHash = hash("sha256", $additionalBody);
+
+    $requestPath = parse_url($url, PHP_URL_PATH);
+
+    $stringToSign = "$method:$requestPath:$accessToken:$bodyHash:$timestamp";
+
+    $signature = hash_hmac("sha512", $stringToSign, $secretKey);
 
     // Header request
     $headersRequest = [
       "Content-Type: " . self::CONTENT_TYPE,
       "X-TIMESTAMP: $timestamp",
-      "X-SIGNATURE: $signatureToken",
+      "X-SIGNATURE: $signature",
       "X-CLIENT-KEY: $clientId",
       "x-partner-id: $clientId",
       "x-external-id: $externalId",
@@ -245,7 +276,8 @@ class PrepareRequest {
       "x-latitude: $latitude",
       "x-longitude: $longitude",
       "channel-id: $channelId",
-      "origin: $origin"
+      "origin: $origin",
+      "Authorization: Bearer $accessToken",
     ];
 
     return [$additionalBody, $headersRequest];

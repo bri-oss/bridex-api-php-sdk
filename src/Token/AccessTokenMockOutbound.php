@@ -1,5 +1,4 @@
 <?php
-
 namespace BRI\Token;
 
 use BRI\Signature\Signature;
@@ -7,10 +6,10 @@ use BRI\Signature\Signature;
 interface AccessTokenMockOutboundInterface {
   public function getAccessToken(
     string $clientId,
-    string $clientSecret,
     string $timestamp,
     string $baseUrl,
-    string $accessTokenPath
+    string $accessTokenPath,
+    string $privateKey
   ): string;
 }
 
@@ -24,24 +23,27 @@ class AccessTokenMockOutbound implements AccessTokenMockOutboundInterface {
 
   public function getAccessToken(
     string $clientId,
-    string $clientSecret,
     string $timestamp,
     string $baseUrl,
-    string $accessTokenPath
+    string $accessTokenPath,
+    string $privateKey
   ): string {
-    $stringToSign = "{$clientId}|{$timestamp}";
-    $signatureToken = hash_hmac("sha256", $stringToSign, $clientSecret);
+    $stringToSign = "$clientId|$timestamp";
 
     // body request
     $dataToken = ['grantType' => "client_credentials"];
     $bodyToken = json_encode($dataToken, true);
+
+    openssl_sign($stringToSign, $signature, $privateKey, OPENSSL_ALGO_SHA256);
+
+    $hexSignature = bin2hex($signature); // hexadecimal format 
 
     // Headers
     $requestHeadersToken = array(
       "Content-Type:application/json",
       "X-TIMESTAMP:" . $timestamp,
       "X-CLIENT-KEY:" . "$clientId",
-      "X-SIGNATURE:" . "$signatureToken",
+      "X-SIGNATURE:" . $hexSignature
     );
 
     // fetch access token
@@ -59,6 +61,6 @@ class AccessTokenMockOutbound implements AccessTokenMockOutboundInterface {
 
     $jsonPost = json_decode($response, true);
 
-    return $jsonPost['data']['accessToken'];
+    return $jsonPost['accessToken'];
   }
 }
