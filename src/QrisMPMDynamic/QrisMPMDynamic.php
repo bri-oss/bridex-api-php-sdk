@@ -5,6 +5,7 @@ namespace BRI\QrisMPMDynamic;
 use BRI\Util\ExecuteCurlRequest;
 use BRI\Util\PrepareRequest;
 use BRI\Util\VarNumber;
+use InvalidArgumentException;
 
 interface QrisMPMDynamicInterface {
   public function generateQR(
@@ -31,13 +32,27 @@ class QrisMPMDynamic implements QrisMPMDynamicInterface {
   private ExecuteCurlRequest $executeCurlRequest;
   private PrepareRequest $prepareRequest;
   private string $externalId;
-  private string $pathGenerateQR = '/v1.1/qr-dynamic-mpm/qr-mpm-generate-qr';
-  private string $pathInquiryPayment = '/v1.1/qr-dynamic-mpm/qr-mpm-query';
 
-  public function __construct() {
-    $this->executeCurlRequest = new ExecuteCurlRequest();
+  public function __construct(
+    ExecuteCurlRequest $executeCurlRequest,
+    PrepareRequest $prepareRequest
+  ) {
+    $this->executeCurlRequest = $executeCurlRequest;
+    $this->prepareRequest = $prepareRequest;
     $this->externalId = (new VarNumber())->generateVar(9);
-    $this->prepareRequest = new PrepareRequest();
+  }
+
+  private function getPath(string $type): string {
+    $paths = [
+      'generateQR' => '/v1.1/qr-dynamic-mpm/qr-mpm-generate-qr',
+      'inquiryPayment' => '/v1.1/qr-dynamic-mpm/qr-mpm-query'
+    ];
+
+    if (!array_key_exists($type, $paths)) {
+      throw new InvalidArgumentException("Invalid request type: $type");
+    }
+
+    return $paths[$type];
   }
 
   public function generateQR(
@@ -49,10 +64,12 @@ class QrisMPMDynamic implements QrisMPMDynamicInterface {
     string $timestamp,
     array $body
   ): string {
+    $path = $this->getPath('generateQR');
+
     list($bodyRequest, $headersRequest) = $this->prepareRequest->QrisMPMDynamic(
       $clientSecret,
       $partnerId,
-      $this->pathGenerateQR,
+      $path,
       $accessToken,
       $channelId,
       $this->externalId,
@@ -61,7 +78,7 @@ class QrisMPMDynamic implements QrisMPMDynamicInterface {
     );
 
     $response = $this->executeCurlRequest->execute(
-      "$baseUrl$this->pathGenerateQR",
+      "$baseUrl$path",
       $headersRequest,
       $bodyRequest
     );
@@ -79,10 +96,12 @@ class QrisMPMDynamic implements QrisMPMDynamicInterface {
     array $body
   ): string {
 
+    $path = $this->getPath('generateQR');
+
     list($bodyRequest, $headersRequest) = $this->prepareRequest->QrisMPMDynamic(
       $clientSecret,
       $partnerId,
-      $this->pathInquiryPayment,
+      $path,
       $accessToken,
       $channelId,
       $this->externalId,
@@ -91,7 +110,7 @@ class QrisMPMDynamic implements QrisMPMDynamicInterface {
     );
 
     $response = $this->executeCurlRequest->execute(
-      "$baseUrl$this->pathInquiryPayment",
+      "$baseUrl$path",
       $headersRequest,
       $bodyRequest
     );

@@ -53,16 +53,30 @@ class DirectDebit implements DirectDebitInterface {
   private ExecuteCurlRequest $executeCurlRequest;
   private PrepareRequest $prepareRequest;
   private string $externalId;
-  private string $pathPayment = '/snap/v2.0/debit/payment-host-to-host';
-  private string $pathPaymentStatus = '/snap/v2.0/debit/status';
-  private string $pathrefundPayment = '/snap/v2.0/debit/refund';
-  private string $pathPaymentNotify = '/snap/v2.0/debit/notify';
-  private string $pathRefundNotify = '/snap/v2.0/debit/notify';
 
-  public function __construct() {
-    $this->executeCurlRequest = new ExecuteCurlRequest();
+  public function __construct(
+    ExecuteCurlRequest $executeCurlRequest,
+    PrepareRequest $prepareRequest
+  ) {
+    $this->executeCurlRequest = $executeCurlRequest;
+    $this->prepareRequest = $prepareRequest;
     $this->externalId = (new VarNumber())->generateVar(9);
-    $this->prepareRequest = new PrepareRequest();
+  }
+
+  private function getPath(string $type): string {
+    $paths = [
+      'payment' => '/snap/v2.0/debit/payment-host-to-host',
+      'paymentStatus' => '/snap/v2.0/debit/status',
+      'refundPayment' => '/snap/v2.0/debit/refund',
+      'paymentNotify' => '/snap/v2.0/debit/notify',
+      'refundNotify' => '/snap/v2.0/debit/notify/refund'
+    ];
+
+    if (!array_key_exists($type, $paths)) {
+      throw new InvalidArgumentException("Invalid request type: $type");
+    }
+
+    return $paths[$type];
   }
 
   public function payment(
@@ -79,10 +93,12 @@ class DirectDebit implements DirectDebitInterface {
       throw new InvalidArgumentException('invalid body');
     }
 
+    $path = $this->getPath('payment');
+
     list($bodyRequest, $headersRequest) = $this->prepareRequest->DirectDebit(
       $clientSecret,
       $partnerId,
-      $this->pathPayment,
+      $path,
       $accessToken,
       $channelId,
       $this->externalId,
@@ -90,11 +106,16 @@ class DirectDebit implements DirectDebitInterface {
       json_encode($body, JSON_UNESCAPED_SLASHES)
     );
 
-    $response = $this->executeCurlRequest->execute(
-      "$baseUrl$this->pathPayment",
-      $headersRequest,
-      $bodyRequest
-    );
+    try {
+      $response = $this->executeCurlRequest->execute(
+        "$baseUrl$path",
+        $headersRequest,
+        $bodyRequest
+      );
+    } catch (\Exception $e) {
+      // Log the exception, handle retry mechanisms, etc.
+      throw new \RuntimeException('Error executing direct debit payment: ' . $e->getMessage());
+    }
 
     return $response;
   }
@@ -113,10 +134,12 @@ class DirectDebit implements DirectDebitInterface {
       throw new InvalidArgumentException('invalid body');
     }
 
+    $path = $this->getPath('paymentStatus');
+
     list($bodyRequest, $headersRequest) = $this->prepareRequest->DirectDebit(
       $clientSecret,
       $partnerId,
-      $this->pathPaymentStatus,
+      $path,
       $accessToken,
       $channelId,
       $this->externalId,
@@ -124,11 +147,16 @@ class DirectDebit implements DirectDebitInterface {
       json_encode($body, JSON_UNESCAPED_SLASHES)
     );
 
-    $response = $this->executeCurlRequest->execute(
-      "$baseUrl$this->pathPaymentStatus",
-      $headersRequest,
-      $bodyRequest
-    );
+    try {
+      $response = $this->executeCurlRequest->execute(
+        "$baseUrl$path",
+        $headersRequest,
+        $bodyRequest
+      );
+    } catch (\Exception $e) {
+      // Log the exception, handle retry mechanisms, etc.
+      throw new \RuntimeException('Error executing direct debit payment status: ' . $e->getMessage());
+    }
 
     return $response;
   }
@@ -147,10 +175,12 @@ class DirectDebit implements DirectDebitInterface {
       throw new InvalidArgumentException('invalid body');
     }
 
+    $path = $this->getPath('refundPayment');
+
     list($bodyRequest, $headersRequest) = $this->prepareRequest->DirectDebit(
       $clientSecret,
       $partnerId,
-      $this->pathrefundPayment,
+      $path,
       $accessToken,
       $channelId,
       $this->externalId,
@@ -158,11 +188,16 @@ class DirectDebit implements DirectDebitInterface {
       json_encode($body, JSON_UNESCAPED_SLASHES)
     );
 
-    $response = $this->executeCurlRequest->execute(
-      "$baseUrl$this->pathrefundPayment",
-      $headersRequest,
-      $bodyRequest
-    );
+    try {
+      $response = $this->executeCurlRequest->execute(
+        "$baseUrl$path",
+        $headersRequest,
+        $bodyRequest
+      );
+    } catch (\Exception $e) {
+      // Log the exception, handle retry mechanisms, etc.
+      throw new \RuntimeException('Error executing direct debit refund payment: ' . $e->getMessage());
+    }
 
     return $response;
   }
@@ -186,9 +221,11 @@ class DirectDebit implements DirectDebitInterface {
         'merchantTrxid' => '30220107504',
         'remarks' => ''
       ]
-      ];
+    ];
 
-      list($bodyRequest, $headersRequest) = $this->prepareRequest->DirectDebitOutbound(
+    $path = $this->getPath('paymentNotify');
+
+    list($bodyRequest, $headersRequest) = $this->prepareRequest->DirectDebitOutbound(
       $clientId,
       $clientSecret,
       $accessToken,
@@ -196,7 +233,7 @@ class DirectDebit implements DirectDebitInterface {
     );
 
     $response = $this->executeCurlRequest->execute(
-      "$baseUrl$this->pathPaymentNotify",
+      "$baseUrl$path",
       $headersRequest,
       $bodyRequest,
       'POST'
@@ -205,7 +242,6 @@ class DirectDebit implements DirectDebitInterface {
     return $response;
   }
 
-  
   public function refundNotify(
     string $baseUrl,
     string $clientId,
@@ -224,17 +260,19 @@ class DirectDebit implements DirectDebitInterface {
       'additionalInfo' => (object) [
         'refundId' => '528786398613',
       ]
-      ];
+    ];
 
-      list($bodyRequest, $headersRequest) = $this->prepareRequest->DirectDebitOutbound(
+    list($bodyRequest, $headersRequest) = $this->prepareRequest->DirectDebitOutbound(
       $clientId,
       $clientSecret,
       $accessToken,
       json_encode($additionalBody, true)
     );
 
+    $path = $this->getPath('refundNotify');
+
     $response = $this->executeCurlRequest->execute(
-      "$baseUrl$this->pathRefundNotify",
+      "$baseUrl$path",
       $headersRequest,
       $bodyRequest,
       'POST'

@@ -5,6 +5,7 @@ namespace BRI\TransferCredit;
 use BRI\Util\ExecuteCurlRequest;
 use BRI\Util\PrepareRequest;
 use BRI\Util\VarNumber;
+use InvalidArgumentException;
 
 interface InterbankTransferInterface {
   public function inquiry(
@@ -50,10 +51,21 @@ class InterbankTransfer implements InterbankTransferInterface {
   private string $pathInquiry = '/interbank/snap/v1.0/account-inquiry-external';
   private string $pathTransfer = '/interbank/snap/v1.0/transfer-interbank';
 
-  public function __construct() {
-    $this->executeCurlRequest = new ExecuteCurlRequest();
+  public function __construct(
+    ExecuteCurlRequest $executeCurlRequest,
+    PrepareRequest $prepareRequest
+  ) {
+    $this->executeCurlRequest = $executeCurlRequest;
+    $this->prepareRequest = $prepareRequest;
     $this->externalId = (new VarNumber())->generateVar(9);
-    $this->prepareRequest = new PrepareRequest();
+  }
+
+  private function validateInputs(string ...$inputs): void {
+    foreach ($inputs as $input) {
+      if (empty($input)) {
+        throw new InvalidArgumentException("Required parameter is missing or empty.");
+      }
+    }
   }
 
   public function inquiry(
@@ -68,6 +80,20 @@ class InterbankTransfer implements InterbankTransferInterface {
     ?string $deviceId,
     ?string $channel
   ): string {
+    $this->validateInputs(
+      $clientSecret,
+      $partnerId,
+      $baseUrl,
+      $accessToken,
+      $channelId,
+      $timestamp,
+      $beneficiaryBankCode,
+      $beneficiaryAccountNo
+    );
+
+    $baseUrl = rtrim($baseUrl, '/');
+    $url = "$baseUrl/{$this->pathInquiry}";
+
     $additionalBody = [
       'beneficiaryBankCode' => $beneficiaryBankCode,
       'beneficiaryAccountNo' => $beneficiaryAccountNo,
@@ -77,26 +103,32 @@ class InterbankTransfer implements InterbankTransferInterface {
       ]
     ];
 
-    list($bodyRequest, $headersRequest) = $this->prepareRequest->TransferCredit(
-      $clientSecret,
-      $partnerId,
-      $this->pathInquiry,
-      $accessToken,
-      $channelId,
-      $this->externalId,
-      $timestamp,
-      json_encode($additionalBody, true),
-      'POST'
-    );
+    try {
+      list($bodyRequest, $headersRequest) = $this->prepareRequest->TransferCredit(
+        $clientSecret,
+        $partnerId,
+        $this->pathInquiry,
+        $accessToken,
+        $channelId,
+        $this->externalId,
+        $timestamp,
+        json_encode($additionalBody, true),
+        'POST'
+      );
 
-    $response = $this->executeCurlRequest->execute(
-      "$baseUrl$this->pathInquiry",
-      $headersRequest,
-      $bodyRequest,
-      'POST'
-    );
+      $response = $this->executeCurlRequest->execute(
+        $url,
+        $headersRequest,
+        $bodyRequest,
+        'POST'
+      );
 
-    return $response;
+      return $response;
+    } catch (InvalidArgumentException $e) {
+      throw new \RuntimeException('Input validation error: ' . $e->getMessage(), 0, $e);
+    } catch (\Exception $e) {
+      throw new \RuntimeException('Error fetching access token: ' . $e->getMessage(), 0, $e);
+    }
   }
 
   public function transfer(
@@ -121,6 +153,25 @@ class InterbankTransfer implements InterbankTransferInterface {
     ?string $deviceId,
     ?string $channel
   ): string {
+    $this->validateInputs(
+      $clientSecret,
+      $partnerId,
+      $baseUrl,
+      $accessToken,
+      $channelId,
+      $timestamp,
+      $partnerReferenceNo,
+      $value,
+      $beneficiaryAccountName,
+      $beneficiaryAccountNo,
+      $beneficiaryBankCode,
+      $sourceAccountNo,
+      $transactionDate
+    );
+
+    $baseUrl = rtrim($baseUrl, '/');
+    $url = "$baseUrl/{$this->pathTransfer}";
+
     $additionalBody = [
       'partnerReferenceNo' => $partnerReferenceNo,
       'amount' => (object) [
@@ -142,25 +193,31 @@ class InterbankTransfer implements InterbankTransferInterface {
       ]
     ];
 
-    list($bodyRequest, $headersRequest) = $this->prepareRequest->TransferCredit(
-      $clientSecret,
-      $partnerId,
-      $this->pathTransfer,
-      $accessToken,
-      $channelId,
-      $this->externalId,
-      $timestamp,
-      json_encode($additionalBody, true),
-      'POST'
-    );
+    try {
+      list($bodyRequest, $headersRequest) = $this->prepareRequest->TransferCredit(
+        $clientSecret,
+        $partnerId,
+        $this->pathTransfer,
+        $accessToken,
+        $channelId,
+        $this->externalId,
+        $timestamp,
+        json_encode($additionalBody, true),
+        'POST'
+      );
 
-    $response = $this->executeCurlRequest->execute(
-      "$baseUrl$this->pathTransfer",
-      $headersRequest,
-      $bodyRequest,
-      'POST'
-    );
+      $response = $this->executeCurlRequest->execute(
+        $url,
+        $headersRequest,
+        $bodyRequest,
+        'POST'
+      );
 
-    return $response;
+      return $response;
+    } catch (InvalidArgumentException $e) {
+      throw new \RuntimeException('Input validation error: ' . $e->getMessage(), 0, $e);
+    } catch (\Exception $e) {
+      throw new \RuntimeException('Error fetching access token: ' . $e->getMessage(), 0, $e);
+    }
   }
 }

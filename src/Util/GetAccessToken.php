@@ -94,7 +94,7 @@ class GetAccessToken {
     // Format ke ISO 8601 dengan menambahkan milidetik
     $timestamp = $date->format("Y-m-d\TH:i:s") . ".$milliseconds" . $date->format("P");
 
-    $accessToken = (new AccessTokenMockOutbound(new Signature()))->getAccessToken(
+    $accessToken = (new AccessTokenMockOutbound())->getAccessToken(
       $clientId,
       $timestamp,
       $baseUrl,

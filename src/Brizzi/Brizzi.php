@@ -35,14 +35,28 @@ class Brizzi implements BrizziInterface {
   private ExecuteCurlRequest $executeCurlRequest;
   private PrepareRequest $prepareRequest;
   private string $externalId;
-  private string $pathValidateCardNumber = '/v2.0/brizzi/checknum';
-  private string $pathTopupDeposit = '/v2.0/brizzi/topup';
-  private string $pathCheckTopupDeposit = '/v2.0/brizzi/checktrx';
 
-  public function __construct() {
-    $this->executeCurlRequest = new ExecuteCurlRequest();
+  public function __construct(
+    ExecuteCurlRequest $executeCurlRequest,
+    PrepareRequest $prepareRequest
+  ) {
+    $this->executeCurlRequest = $executeCurlRequest;
+    $this->prepareRequest = $prepareRequest;
     $this->externalId = (new VarNumber())->generateVar(9);
-    $this->prepareRequest = new PrepareRequest();
+  }
+
+  private function getPath(string $type): string {
+    $paths = [
+      'validateCardNumber' => '/v2.0/brizzi/checknum',
+      'topupDeposit' => '/v2.0/brizzi/topup',
+      'checkTopupDeposit' => '/v2.0/brizzi/checktrx'
+    ];
+
+    if (!array_key_exists($type, $paths)) {
+      throw new InvalidArgumentException("Invalid request type: $type");
+    }
+
+    return $paths[$type];
   }
 
   public function validateCardNumber(
@@ -56,9 +70,11 @@ class Brizzi implements BrizziInterface {
       throw new InvalidArgumentException('Both username and brizziCardNo are required.');
     }
 
+    $path = $this->getPath('validateCardNumber');
+
     list($bodyRequest, $headersRequest) = $this->prepareRequest->Brizzi(
       $clientSecret,
-      $this->pathValidateCardNumber,
+      $path,
       $accessToken,
       $this->externalId,
       $timestamp,
@@ -66,7 +82,7 @@ class Brizzi implements BrizziInterface {
     );
 
     $response = $this->executeCurlRequest->execute(
-      "$baseUrl$this->pathValidateCardNumber",
+      "$baseUrl$path",
       $headersRequest,
       $bodyRequest
     );
@@ -85,22 +101,30 @@ class Brizzi implements BrizziInterface {
       throw new InvalidArgumentException('Both username, amount, and brizziCardNo are required.');
     }
 
-    list($bodyRequest, $headersRequest) = $this->prepareRequest->Brizzi(
-      $clientSecret,
-      $this->pathTopupDeposit,
-      $accessToken,
-      $this->externalId,
-      $timestamp,
-      json_encode($body, true)
-    );
+    try {
+      $path = $this->getPath('topupDeposit');
 
-    $response = $this->executeCurlRequest->execute(
-      "$baseUrl$this->pathTopupDeposit",
-      $headersRequest,
-      $bodyRequest
-    );
+      list($bodyRequest, $headersRequest) = $this->prepareRequest->Brizzi(
+        $clientSecret,
+        $path,
+        $accessToken,
+        $this->externalId,
+        $timestamp,
+        json_encode($body, true)
+      );
 
-    return $response;
+      $response = $this->executeCurlRequest->execute(
+        "$baseUrl$path",
+        $headersRequest,
+        $bodyRequest
+      );
+
+      return $response;
+    } catch (InvalidArgumentException $e) {
+      throw new \RuntimeException('Input validation error: ' . $e->getMessage(), 0, $e);
+    } catch (\Exception $e) {
+      throw new \RuntimeException('Error fetching access token: ' . $e->getMessage(), 0, $e);
+    }
   }
 
   public function checkTopupStatus(
@@ -114,21 +138,29 @@ class Brizzi implements BrizziInterface {
       throw new InvalidArgumentException('Both username, amount, reff and brizziCardNo are required.');
     }
 
-    list($bodyRequest, $headersRequest) = $this->prepareRequest->Brizzi(
-      $clientSecret,
-      $this->pathCheckTopupDeposit,
-      $accessToken,
-      $this->externalId,
-      $timestamp,
-      json_encode($body, true)
-    );
+    try {
+      $path = $this->getPath('checkTopupStatus');
 
-    $response = $this->executeCurlRequest->execute(
-      "$baseUrl$this->pathCheckTopupDeposit",
-      $headersRequest,
-      $bodyRequest
-    );
+      list($bodyRequest, $headersRequest) = $this->prepareRequest->Brizzi(
+        $clientSecret,
+        $path,
+        $accessToken,
+        $this->externalId,
+        $timestamp,
+        json_encode($body, true)
+      );
 
-    return $response;
+      $response = $this->executeCurlRequest->execute(
+        "$baseUrl$path",
+        $headersRequest,
+        $bodyRequest
+      );
+
+      return $response;
+    } catch (InvalidArgumentException $e) {
+      throw new \RuntimeException('Input validation error: ' . $e->getMessage(), 0, $e);
+    } catch (\Exception $e) {
+      throw new \RuntimeException('Error fetching access token: ' . $e->getMessage(), 0, $e);
+    }
   }
 }

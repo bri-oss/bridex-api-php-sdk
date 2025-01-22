@@ -4,6 +4,7 @@ namespace BRI\CardlessCashWithdrawal;
 
 use BRI\Util\ExecuteCurlRequest;
 use BRI\Util\PrepareRequest;
+use InvalidArgumentException;
 
 interface CardlessWithdrawalInterface {
   public function cardlessWithdrawal(
@@ -19,9 +20,12 @@ class CardlessWithdrawal implements CardlessWithdrawalInterface {
   private PrepareRequest $prepareRequest;
   private string $path = '/v1/cardless/withdrawal';
 
-  public function __construct() {
-    $this->executeCurlRequest = new ExecuteCurlRequest();
-    $this->prepareRequest = new PrepareRequest();
+  public function __construct(
+    ExecuteCurlRequest $executeCurlRequest,
+    PrepareRequest $prepareRequest
+  ) {
+    $this->executeCurlRequest = $executeCurlRequest;
+    $this->prepareRequest = $prepareRequest;
   }
 
   public function cardlessWithdrawal(
@@ -30,6 +34,10 @@ class CardlessWithdrawal implements CardlessWithdrawalInterface {
     string $secretKey,
     string $accessToken
   ): string {
+    if (empty($baseUrl) || empty($clientId) || empty($secretKey) || empty($accessToken)) {
+      throw new InvalidArgumentException('All input parameters (baseUrl, clientId, secretKey, accessToken) are required.');
+    }
+
     $additionalBody = [
       "token" => "920331011",
       "msisdn" => "811882168118292736",
@@ -46,12 +54,17 @@ class CardlessWithdrawal implements CardlessWithdrawalInterface {
       json_encode($additionalBody, true)
     );
 
-    $response = $this->executeCurlRequest->execute(
-      "$baseUrl$this->path",
-      $headersRequest,
-      $bodyRequest,
-      'POST'
-    );
+    try {
+      $response = $this->executeCurlRequest->execute(
+        "$baseUrl$this->path",
+        $headersRequest,
+        $bodyRequest,
+        'POST'
+      );
+    } catch (\Exception $e) {
+      // Log the exception, handle retry mechanisms, etc.
+      throw new \RuntimeException('Error executing cardless withdrawal: ' . $e->getMessage());
+    }
 
     return $response;
   }

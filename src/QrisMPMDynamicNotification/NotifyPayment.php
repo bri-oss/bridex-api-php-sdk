@@ -22,16 +22,18 @@ interface NotifyPaymentInterface
   ): string;
 }
 
-class NotifyPayment implements NotifyPaymentInterface
-{
+class NotifyPayment implements NotifyPaymentInterface {
   private ExecuteCurlRequest $executeCurlRequest;
   private PrepareRequest $prepareRequest;
   private string $path = '/v1.1/qr-dynamic/qr-mpm-notify';
 
-  public function __construct()
+  public function __construct(
+    ExecuteCurlRequest $executeCurlRequest,
+    PrepareRequest $prepareRequest
+  )
   {
-    $this->executeCurlRequest = new ExecuteCurlRequest();
-    $this->prepareRequest = new PrepareRequest();
+    $this->executeCurlRequest = $executeCurlRequest;
+    $this->prepareRequest = $prepareRequest;
   }
 
   public function notifyPayment(

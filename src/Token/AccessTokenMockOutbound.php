@@ -2,6 +2,7 @@
 namespace BRI\Token;
 
 use BRI\Signature\Signature;
+use InvalidArgumentException;
 
 interface AccessTokenMockOutboundInterface {
   public function getAccessToken(
@@ -14,13 +15,6 @@ interface AccessTokenMockOutboundInterface {
 }
 
 class AccessTokenMockOutbound implements AccessTokenMockOutboundInterface {
-  private Signature $signature;
-
-  public function __construct(Signature $signature)
-  {
-    $this->signature = $signature;
-  }
-
   public function getAccessToken(
     string $clientId,
     string $timestamp,
@@ -28,39 +22,70 @@ class AccessTokenMockOutbound implements AccessTokenMockOutboundInterface {
     string $accessTokenPath,
     string $privateKey
   ): string {
-    $stringToSign = "$clientId|$timestamp";
+    try {
+      // Validate inputs
+      if (empty($clientId) || empty($timestamp) || empty($baseUrl) || empty($accessTokenPath) || empty($privateKey)) {
+        throw new InvalidArgumentException('All parameters are required.');
+      }
 
-    // body request
-    $dataToken = ['grantType' => "client_credentials"];
-    $bodyToken = json_encode($dataToken, true);
+      if (!filter_var($baseUrl, FILTER_VALIDATE_URL)) {
+        throw new InvalidArgumentException('Invalid base URL.');
+      }
 
-    openssl_sign($stringToSign, $signature, $privateKey, OPENSSL_ALGO_SHA256);
+      // Generate signature
+      $stringToSign = "$clientId|$timestamp";
 
-    $hexSignature = bin2hex($signature); // hexadecimal format 
+      if (!openssl_sign($stringToSign, $signature, $privateKey, OPENSSL_ALGO_SHA256)) {
+        throw new \RuntimeException('Failed to generate signature.');
+      }
 
-    // Headers
-    $requestHeadersToken = array(
-      "Content-Type:application/json",
-      "X-TIMESTAMP:" . $timestamp,
-      "X-CLIENT-KEY:" . "$clientId",
-      "X-SIGNATURE:" . $hexSignature
-    );
+      $hexSignature = bin2hex($signature); // Convert to hexadecimal format
 
-    // fetch access token
-    $chPost = curl_init();
-    curl_setopt_array($chPost, [
-      CURLOPT_URL => "$baseUrl$accessTokenPath",
-      CURLOPT_HTTPHEADER => $requestHeadersToken,
-      CURLOPT_POSTFIELDS => $bodyToken,
-      CURLOPT_RETURNTRANSFER => true,
-      CURLOPT_CUSTOMREQUEST => "POST",
-    ]);
+      // Headers
+      $requestHeadersToken = [
+        "Content-Type: application/json",
+        "X-TIMESTAMP: $timestamp",
+        "X-CLIENT-KEY: $clientId",
+        "X-SIGNATURE: $hexSignature"
+      ];
 
-    $response = curl_exec($chPost);
-    curl_close($chPost);
+      // Request body
+      $dataToken = ['grantType' => "client_credentials"];
+      $bodyToken = json_encode($dataToken);
 
-    $jsonPost = json_decode($response, true);
+      // cURL request
+      $chPost = curl_init();
+      curl_setopt_array($chPost, [
+        CURLOPT_URL => rtrim($baseUrl, '/') . '/' . ltrim($accessTokenPath, '/'),
+        CURLOPT_HTTPHEADER => $requestHeadersToken,
+        CURLOPT_POSTFIELDS => $bodyToken,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CUSTOMREQUEST => "POST",
+      ]);
 
-    return $jsonPost['accessToken'];
+      $response = curl_exec($chPost);
+      $curlError = curl_error($chPost);
+      $httpCode = curl_getinfo($chPost, CURLINFO_HTTP_CODE);
+      curl_close($chPost);
+
+      // Handle cURL errors
+      if ($response === false || $curlError) {
+        throw new \RuntimeException('cURL error: ' . $curlError);
+      }
+
+      // Parse response
+      $jsonPost = json_decode($response, true);
+
+      // Validate response structure
+      if ($httpCode !== 200 || !isset($jsonPost['accessToken'])) {
+        throw new \RuntimeException('Invalid response received: ' . $response);
+      }
+
+      return $jsonPost['accessToken'];
+    } catch (InvalidArgumentException $e) {
+      throw new \RuntimeException('Input validation error: ' . $e->getMessage(), 0, $e);
+    } catch (\Exception $e) {
+      throw new \RuntimeException('Error fetching access token: ' . $e->getMessage(), 0, $e);
+    }
   }
 }

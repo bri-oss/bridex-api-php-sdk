@@ -3,6 +3,7 @@ namespace BRI\VirtualAccount;
 
 use BRI\Util\ExecuteCurlRequest;
 use BRI\Util\PrepareRequest;
+use InvalidArgumentException;
 
 interface BrivaOnlineInterface {
   public function inquiry(
@@ -30,9 +31,12 @@ class BrivaOnline implements BrivaOnlineInterface {
   private string $pathInquiry = '/v1/transfer-va/inquiry';
   private string $pathPayment = '/v1/transfer-va/payment';
 
-  public function __construct() {
-    $this->executeCurlRequest = new ExecuteCurlRequest();
-    $this->prepareRequest = new PrepareRequest();
+  public function __construct(
+    ExecuteCurlRequest $executeCurlRequest,
+    PrepareRequest $prepareRequest
+  ) {
+    $this->executeCurlRequest = $executeCurlRequest;
+    $this->prepareRequest = $prepareRequest;
   }
 
   public function inquiry(
@@ -43,6 +47,36 @@ class BrivaOnline implements BrivaOnlineInterface {
     string $accessToken,
     ?string $passApp
   ): string {
+    // Validate partnerId
+    if (empty($partnerId) || !preg_match('/^[a-zA-Z0-9\-]{3,}$/', $partnerId)) {
+        throw new InvalidArgumentException('Invalid or missing partnerId.');
+    }
+
+    // Validate clientId
+    if (empty($clientId) || !preg_match('/^[a-zA-Z0-9\-]{3,}$/', $clientId)) {
+        throw new InvalidArgumentException('Invalid or missing clientId.');
+    }
+
+    // Validate clientSecret
+    if (empty($clientSecret) || strlen($clientSecret) < 8) {
+        throw new InvalidArgumentException('Invalid or missing clientSecret. Must be at least 8 characters.');
+    }
+
+    // Validate baseUrl
+    if (empty($baseUrl) || !filter_var($baseUrl, FILTER_VALIDATE_URL)) {
+        throw new InvalidArgumentException('Invalid or missing baseUrl. Must be a valid URL.');
+    }
+
+    // Validate accessToken
+    if (empty($accessToken) || strlen($accessToken) < 16) {
+        throw new InvalidArgumentException('Invalid or missing accessToken. Must be at least 16 characters.');
+    }
+
+    // Validate passApp (optional)
+    if ($passApp !== null && strlen($passApp) < 6) {
+        throw new InvalidArgumentException('Invalid passApp. If provided, it must be at least 6 characters.');
+    }
+
     $additionalBody = [
       'partnerServiceId' => "   77777",
       'customerNo' => "0000000000001",
@@ -61,24 +95,30 @@ class BrivaOnline implements BrivaOnlineInterface {
       ]
     ];
 
-    list($bodyRequest, $headersRequest) = $this->prepareRequest->VABrivaOnline(
-      $partnerId,
-      $clientId,
-      $clientSecret,
-      $accessToken,
-      "$baseUrl$this->pathInquiry",
-      'POST',
-      json_encode($additionalBody, true)
-    );
+    try {
+      list($bodyRequest, $headersRequest) = $this->prepareRequest->VABrivaOnline(
+        $partnerId,
+        $clientId,
+        $clientSecret,
+        $accessToken,
+        "$baseUrl$this->pathInquiry",
+        'POST',
+        json_encode($additionalBody, true)
+      );
 
-    $response = $this->executeCurlRequest->execute(
-      "$baseUrl$this->pathInquiry",
-      $headersRequest,
-      $bodyRequest,
-      'POST'
-    );
+      $response = $this->executeCurlRequest->execute(
+        "$baseUrl$this->pathInquiry",
+        $headersRequest,
+        $bodyRequest,
+        'POST'
+      );
 
-    return $response;
+      return $response;
+    } catch (InvalidArgumentException $e) {
+      throw new \RuntimeException('Input validation error: ' . $e->getMessage(), 0, $e);
+    } catch (\Exception $e) {
+      throw new \RuntimeException('Error fetching access token: ' . $e->getMessage(), 0, $e);
+    }
   }
 
   public function payment(
@@ -89,6 +129,36 @@ class BrivaOnline implements BrivaOnlineInterface {
     string $accessToken,
     ?string $passApp
   ): string {
+    // Validate partnerId
+    if (empty($partnerId) || !preg_match('/^[a-zA-Z0-9\-]{3,}$/', $partnerId)) {
+        throw new InvalidArgumentException('Invalid or missing partnerId.');
+    }
+
+    // Validate clientId
+    if (empty($clientId) || !preg_match('/^[a-zA-Z0-9\-]{3,}$/', $clientId)) {
+        throw new InvalidArgumentException('Invalid or missing clientId.');
+    }
+
+    // Validate clientSecret
+    if (empty($clientSecret) || strlen($clientSecret) < 8) {
+        throw new InvalidArgumentException('Invalid or missing clientSecret. Must be at least 8 characters.');
+    }
+
+    // Validate baseUrl
+    if (empty($baseUrl) || !filter_var($baseUrl, FILTER_VALIDATE_URL)) {
+        throw new InvalidArgumentException('Invalid or missing baseUrl. Must be a valid URL.');
+    }
+
+    // Validate accessToken
+    if (empty($accessToken) || strlen($accessToken) < 16) {
+        throw new InvalidArgumentException('Invalid or missing accessToken. Must be at least 16 characters.');
+    }
+
+    // Validate passApp (optional)
+    if ($passApp !== null && strlen($passApp) < 6) {
+        throw new InvalidArgumentException('Invalid passApp. If provided, it must be at least 6 characters.');
+    }
+
     $additionalBody = [
       'partnerServiceId' => "   77777",
       'customerNo' => "0000000000001",
@@ -109,23 +179,29 @@ class BrivaOnline implements BrivaOnlineInterface {
       ]
     ];
 
-    list($bodyRequest, $headersRequest) = $this->prepareRequest->VABrivaOnline(
-      $partnerId,
-      $clientId,
-      $clientSecret,
-      $accessToken,
-      "$baseUrl$this->pathPayment",
-      'POST',
-      json_encode($additionalBody, true)
-    );
+    try {
+      list($bodyRequest, $headersRequest) = $this->prepareRequest->VABrivaOnline(
+        $partnerId,
+        $clientId,
+        $clientSecret,
+        $accessToken,
+        "$baseUrl$this->pathPayment",
+        'POST',
+        json_encode($additionalBody, true)
+      );
 
-    $response = $this->executeCurlRequest->execute(
-      "$baseUrl$this->pathPayment",
-      $headersRequest,
-      $bodyRequest,
-      'POST'
-    );
+      $response = $this->executeCurlRequest->execute(
+        "$baseUrl$this->pathPayment",
+        $headersRequest,
+        $bodyRequest,
+        'POST'
+      );
 
-    return $response;
+      return $response;
+    } catch (InvalidArgumentException $e) {
+      throw new \RuntimeException('Input validation error: ' . $e->getMessage(), 0, $e);
+    } catch (\Exception $e) {
+      throw new \RuntimeException('Error fetching access token: ' . $e->getMessage(), 0, $e);
+    }
   }
 }
