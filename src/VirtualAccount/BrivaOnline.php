@@ -10,7 +10,8 @@ interface BrivaOnlineInterface {
     string $clientId,
     string $clientSecret,
     string $baseUrl,
-    string $accessToken
+    string $accessToken,
+    ?string $passApp
   ): string;
 
   public function payment(
@@ -18,7 +19,8 @@ interface BrivaOnlineInterface {
     string $clientId,
     string $clientSecret,
     string $baseUrl,
-    string $accessToken
+    string $accessToken,
+    ?string $passApp
   ): string;
 }
 
@@ -38,7 +40,8 @@ class BrivaOnline implements BrivaOnlineInterface {
     string $clientId,
     string $clientSecret,
     string $baseUrl,
-    string $accessToken
+    string $accessToken,
+    ?string $passApp
   ): string {
     $additionalBody = [
       'partnerServiceId' => "   77777",
@@ -51,7 +54,7 @@ class BrivaOnline implements BrivaOnlineInterface {
         'value' => "200000.2",
         'currency' => "IDR"
       ], // optional
-      'passApp' => "b7aee423dc7489dfa868426e5c950c677925", //optional
+      'passApp' => $passApp, //optional
       'inquiryRequestId' => "e3bcb9a2-e253-40c6-aa77-d72cc138b744",
       'additionalInfo' => (object) [
         'idApp' => "TEST1234" //optional
@@ -83,7 +86,8 @@ class BrivaOnline implements BrivaOnlineInterface {
     string $clientId,
     string $clientSecret,
     string $baseUrl,
-    string $accessToken
+    string $accessToken,
+    ?string $passApp
   ): string {
     $additionalBody = [
       'partnerServiceId' => "   77777",
@@ -101,7 +105,7 @@ class BrivaOnline implements BrivaOnlineInterface {
       'paymentRequestId' => "e3bcb9a2-e253-40c6-aa77-d72cc138b744", //optional
       'additionalInfo' => (object) [
         'idApp' => "TEST", //optional,
-        'passApp' => "b7aee423dc7489dfa868426e5c950c677925f3b9"
+        'passApp' => $passApp
       ]
     ];
 
