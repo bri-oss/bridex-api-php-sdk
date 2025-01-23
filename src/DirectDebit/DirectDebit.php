@@ -79,6 +79,36 @@ class DirectDebit implements DirectDebitInterface {
     return $paths[$type];
   }
 
+  private function processRequest(
+      string $type,
+      array $bodyValidationKeys,
+      callable $prepareRequestMethod,
+      array $prepareArgs,
+      string $baseUrl
+  ): string {
+      foreach ($bodyValidationKeys as $key) {
+          if (!isset($prepareArgs[0]['body'][$key])) {
+              throw new InvalidArgumentException("Missing required key: $key in body");
+          }
+      }
+
+      $path = $this->getPath($type);
+      $prepareArgs[] = $path; // Add the path to the prepareArgs for dynamic preparation
+      list($bodyRequest, $headersRequest) = call_user_func_array($prepareRequestMethod, $prepareArgs);
+
+      try {
+          $response = $this->executeCurlRequest->execute(
+              "$baseUrl$path",
+              $headersRequest,
+              $bodyRequest
+          );
+      } catch (\Exception $e) {
+          throw new \RuntimeException("Error processing $type: " . $e->getMessage());
+      }
+
+      return $response;
+  }
+
   public function payment(
     string $clientSecret,
     string $partnerId,
@@ -88,36 +118,22 @@ class DirectDebit implements DirectDebitInterface {
     string $timestamp,
     array $body
   ): string {
-    if (
-      !isset($body['partnerReferenceNo']) || !isset($body['urlParam']) || !isset($body['amount']) || !isset($body['chargeToken']) || !isset($body['bankCardToken']) || !isset($body['additionalInfo'])) {
-      throw new InvalidArgumentException('invalid body');
-    }
-
-    $path = $this->getPath('payment');
-
-    list($bodyRequest, $headersRequest) = $this->prepareRequest->DirectDebit(
-      $clientSecret,
-      $partnerId,
-      $path,
-      $accessToken,
-      $channelId,
-      $this->externalId,
-      $timestamp,
-      json_encode($body, JSON_UNESCAPED_SLASHES)
+    return $this->processRequest(
+      'payment',
+      ['partnerReferenceNo', 'urlParam', 'amount', 'chargeToken', 'bankCardToken', 'additionalInfo'],
+      [$this->prepareRequest, 'DirectDebit'],
+      [
+          'body' => $body,
+          $clientSecret,
+          $partnerId,
+          $accessToken,
+          $channelId,
+          $this->externalId,
+          $timestamp,
+          json_encode($body, JSON_UNESCAPED_SLASHES)
+      ],
+      $baseUrl
     );
-
-    try {
-      $response = $this->executeCurlRequest->execute(
-        "$baseUrl$path",
-        $headersRequest,
-        $bodyRequest
-      );
-    } catch (\Exception $e) {
-      // Log the exception, handle retry mechanisms, etc.
-      throw new \RuntimeException('Error executing direct debit payment: ' . $e->getMessage());
-    }
-
-    return $response;
   }
 
   public function paymentStatus(
@@ -129,36 +145,22 @@ class DirectDebit implements DirectDebitInterface {
     string $timestamp,
     array $body
   ): string {
-    if (
-      !isset($body['originalPartnerReferenceNo']) || !isset($body['originalReferenceNo']) || !isset($body['serviceCode'])) {
-      throw new InvalidArgumentException('invalid body');
-    }
-
-    $path = $this->getPath('paymentStatus');
-
-    list($bodyRequest, $headersRequest) = $this->prepareRequest->DirectDebit(
-      $clientSecret,
-      $partnerId,
-      $path,
-      $accessToken,
-      $channelId,
-      $this->externalId,
-      $timestamp,
-      json_encode($body, JSON_UNESCAPED_SLASHES)
+    return $this->processRequest(
+      'paymentStatus',
+      ['originalPartnerReferenceNo', 'originalReferenceNo', 'serviceCode'],
+      [$this->prepareRequest, 'DirectDebit'],
+      [
+          'body' => $body,
+          $clientSecret,
+          $partnerId,
+          $accessToken,
+          $channelId,
+          $this->externalId,
+          $timestamp,
+          json_encode($body, JSON_UNESCAPED_SLASHES)
+      ],
+      $baseUrl
     );
-
-    try {
-      $response = $this->executeCurlRequest->execute(
-        "$baseUrl$path",
-        $headersRequest,
-        $bodyRequest
-      );
-    } catch (\Exception $e) {
-      // Log the exception, handle retry mechanisms, etc.
-      throw new \RuntimeException('Error executing direct debit payment status: ' . $e->getMessage());
-    }
-
-    return $response;
   }
 
   public function refundPayment(
@@ -170,36 +172,22 @@ class DirectDebit implements DirectDebitInterface {
     string $timestamp,
     array $body
   ): string {
-    if (
-      !isset($body['originalPartnerReferenceNo']) || !isset($body['originalReferenceNo']) || !isset($body['partnerRefundNo']) || !isset($body['refundAmount']) || !isset($body['reason']) || !isset($body['additionalInfo'])) {
-      throw new InvalidArgumentException('invalid body');
-    }
-
-    $path = $this->getPath('refundPayment');
-
-    list($bodyRequest, $headersRequest) = $this->prepareRequest->DirectDebit(
-      $clientSecret,
-      $partnerId,
-      $path,
-      $accessToken,
-      $channelId,
-      $this->externalId,
-      $timestamp,
-      json_encode($body, JSON_UNESCAPED_SLASHES)
+    return $this->processRequest(
+      'refundPayment',
+      ['originalPartnerReferenceNo', 'originalReferenceNo', 'partnerRefundNo', 'refundAmount', 'reason', 'additionalInfo'],
+      [$this->prepareRequest, 'DirectDebit'],
+      [
+          'body' => $body,
+          $clientSecret,
+          $partnerId,
+          $accessToken,
+          $channelId,
+          $this->externalId,
+          $timestamp,
+          json_encode($body, JSON_UNESCAPED_SLASHES)
+      ],
+      $baseUrl
     );
-
-    try {
-      $response = $this->executeCurlRequest->execute(
-        "$baseUrl$path",
-        $headersRequest,
-        $bodyRequest
-      );
-    } catch (\Exception $e) {
-      // Log the exception, handle retry mechanisms, etc.
-      throw new \RuntimeException('Error executing direct debit refund payment: ' . $e->getMessage());
-    }
-
-    return $response;
   }
 
   public function paymentNotify(
@@ -223,23 +211,13 @@ class DirectDebit implements DirectDebitInterface {
       ]
     ];
 
-    $path = $this->getPath('paymentNotify');
-
-    list($bodyRequest, $headersRequest) = $this->prepareRequest->DirectDebitOutbound(
-      $clientId,
-      $clientSecret,
-      $accessToken,
-      json_encode($additionalBody, true)
+    return $this->processRequest(
+        'paymentNotify',
+        [],
+        [$this->prepareRequest, 'DirectDebitOutbound'],
+        [$clientId, $clientSecret, $accessToken, json_encode($additionalBody, true)],
+        $baseUrl
     );
-
-    $response = $this->executeCurlRequest->execute(
-      "$baseUrl$path",
-      $headersRequest,
-      $bodyRequest,
-      'POST'
-    );
-
-    return $response;
   }
 
   public function refundNotify(
@@ -262,22 +240,12 @@ class DirectDebit implements DirectDebitInterface {
       ]
     ];
 
-    list($bodyRequest, $headersRequest) = $this->prepareRequest->DirectDebitOutbound(
-      $clientId,
-      $clientSecret,
-      $accessToken,
-      json_encode($additionalBody, true)
+    return $this->processRequest(
+      'refundNotify',
+      [],
+      [$this->prepareRequest, 'DirectDebitOutbound'],
+      [$clientId, $clientSecret, $accessToken, json_encode($additionalBody, true)],
+      $baseUrl
     );
-
-    $path = $this->getPath('refundNotify');
-
-    $response = $this->executeCurlRequest->execute(
-      "$baseUrl$path",
-      $headersRequest,
-      $bodyRequest,
-      'POST'
-    );
-
-    return $response;
   }
 }

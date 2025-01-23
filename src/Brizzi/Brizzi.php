@@ -59,18 +59,24 @@ class Brizzi implements BrizziInterface {
     return $paths[$type];
   }
 
-  public function validateCardNumber(
+  private function makeRequest(
     string $clientSecret,
     string $baseUrl,
     string $accessToken,
     string $timestamp,
-    array $body
+    array $body,
+    string $type,
+    array $requiredFields
   ): string {
-    if (!isset($body['username']) || !isset($body['brizziCardNo'])) {
-      throw new InvalidArgumentException('Both username and brizziCardNo are required.');
+    foreach ($requiredFields as $field) {
+      if (!isset($body[$field])) {
+        throw new InvalidArgumentException(
+          sprintf('The field "%s" is required.', $field)
+        );
+      }
     }
 
-    $path = $this->getPath('validateCardNumber');
+    $path = $this->getPath($type);
 
     list($bodyRequest, $headersRequest) = $this->prepareRequest->Brizzi(
       $clientSecret,
@@ -81,13 +87,29 @@ class Brizzi implements BrizziInterface {
       json_encode($body, true)
     );
 
-    $response = $this->executeCurlRequest->execute(
+    return $this->executeCurlRequest->execute(
       "$baseUrl$path",
       $headersRequest,
       $bodyRequest
     );
+  }
 
-    return $response;
+  public function validateCardNumber(
+    string $clientSecret,
+    string $baseUrl,
+    string $accessToken,
+    string $timestamp,
+    array $body
+  ): string {
+    return $this->makeRequest(
+      $clientSecret,
+      $baseUrl,
+      $accessToken,
+      $timestamp,
+      $body,
+      'validateCardNumber',
+      ['username', 'brizziCardNo']
+    );
   }
 
   public function topupDeposit(
@@ -97,34 +119,15 @@ class Brizzi implements BrizziInterface {
     string $timestamp,
     array $body
   ): string {
-    if (!isset($body['username']) || !isset($body['brizziCardNo']) || !isset($body['amount'])) {
-      throw new InvalidArgumentException('Both username, amount, and brizziCardNo are required.');
-    }
-
-    try {
-      $path = $this->getPath('topupDeposit');
-
-      list($bodyRequest, $headersRequest) = $this->prepareRequest->Brizzi(
-        $clientSecret,
-        $path,
-        $accessToken,
-        $this->externalId,
-        $timestamp,
-        json_encode($body, true)
-      );
-
-      $response = $this->executeCurlRequest->execute(
-        "$baseUrl$path",
-        $headersRequest,
-        $bodyRequest
-      );
-
-      return $response;
-    } catch (InvalidArgumentException $e) {
-      throw new \RuntimeException('Input validation error: ' . $e->getMessage(), 0, $e);
-    } catch (\Exception $e) {
-      throw new \RuntimeException('Error fetching access token: ' . $e->getMessage(), 0, $e);
-    }
+    return $this->makeRequest(
+      $clientSecret,
+      $baseUrl,
+      $accessToken,
+      $timestamp,
+      $body,
+      'topupDeposit',
+      ['username', 'brizziCardNo', 'amount']
+    );
   }
 
   public function checkTopupStatus(
@@ -134,33 +137,14 @@ class Brizzi implements BrizziInterface {
     string $timestamp,
     array $body
   ): string {
-    if (!isset($body['username']) || !isset($body['brizziCardNo']) || !isset($body['amount']) || !isset($body['reff'])) {
-      throw new InvalidArgumentException('Both username, amount, reff and brizziCardNo are required.');
-    }
-
-    try {
-      $path = $this->getPath('checkTopupStatus');
-
-      list($bodyRequest, $headersRequest) = $this->prepareRequest->Brizzi(
-        $clientSecret,
-        $path,
-        $accessToken,
-        $this->externalId,
-        $timestamp,
-        json_encode($body, true)
-      );
-
-      $response = $this->executeCurlRequest->execute(
-        "$baseUrl$path",
-        $headersRequest,
-        $bodyRequest
-      );
-
-      return $response;
-    } catch (InvalidArgumentException $e) {
-      throw new \RuntimeException('Input validation error: ' . $e->getMessage(), 0, $e);
-    } catch (\Exception $e) {
-      throw new \RuntimeException('Error fetching access token: ' . $e->getMessage(), 0, $e);
-    }
+    return $this->makeRequest(
+      $clientSecret,
+      $baseUrl,
+      $accessToken,
+      $timestamp,
+      $body,
+      'checkTopupStatus',
+      ['username', 'brizziCardNo', 'amount', 'reff']
+    );
   }
 }
