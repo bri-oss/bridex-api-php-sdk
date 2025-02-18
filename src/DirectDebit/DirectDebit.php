@@ -82,25 +82,65 @@ class DirectDebit implements DirectDebitInterface {
   private function processRequest(
       string $type,
       array $bodyValidationKeys,
-      callable $prepareRequestMethod,
       array $prepareArgs,
       string $baseUrl
   ): string {
       foreach ($bodyValidationKeys as $key) {
-          if (!isset($prepareArgs[0]['body'][$key])) {
-              throw new InvalidArgumentException("Missing required key: $key in body");
-          }
+        if (!isset($prepareArgs['body'][$key])) {
+          throw new InvalidArgumentException("Missing required key: $key in body");
+        }
       }
 
       $path = $this->getPath($type);
       $prepareArgs[] = $path; // Add the path to the prepareArgs for dynamic preparation
-      list($bodyRequest, $headersRequest) = call_user_func_array($prepareRequestMethod, $prepareArgs);
-
+      list($bodyRequest, $headersRequest) = $this->prepareRequest->DirectDebit(
+        $prepareArgs[1],
+        $prepareArgs[2],
+        $path,
+        $prepareArgs[3],
+        $prepareArgs[4],
+        $prepareArgs[5],
+        $prepareArgs[6],
+        json_encode($prepareArgs['body'], true)
+      );
       try {
           $response = $this->executeCurlRequest->execute(
-              "$baseUrl$path",
-              $headersRequest,
-              $bodyRequest
+            "$baseUrl$path",
+            $headersRequest,
+            $bodyRequest
+          );
+      } catch (\Exception $e) {
+          throw new \RuntimeException("Error processing $type: " . $e->getMessage());
+      }
+
+      return $response;
+  }
+
+  private function processRequestOutbound(
+      string $type,
+      array $bodyValidationKeys,
+      array $prepareArgs,
+      string $baseUrl
+  ): string {
+      foreach ($bodyValidationKeys as $key) {
+        if (!isset($prepareArgs[3][$key])) {
+          throw new InvalidArgumentException("Missing required key: $key in body");
+        }
+      }
+
+      $path = $this->getPath($type);
+      $prepareArgs[] = $path; // Add the path to the prepareArgs for dynamic preparation
+      list($bodyRequest, $headersRequest) = $this->prepareRequest->DirectDebitOutbound(
+        $prepareArgs[0],
+        $prepareArgs[1],
+        $prepareArgs[2],
+        json_encode($prepareArgs[3], true)
+      );
+      try {
+          $response = $this->executeCurlRequest->execute(
+            "$baseUrl$path",
+            $headersRequest,
+            $bodyRequest
           );
       } catch (\Exception $e) {
           throw new \RuntimeException("Error processing $type: " . $e->getMessage());
@@ -121,7 +161,6 @@ class DirectDebit implements DirectDebitInterface {
     return $this->processRequest(
       'payment',
       ['partnerReferenceNo', 'urlParam', 'amount', 'chargeToken', 'bankCardToken', 'additionalInfo'],
-      [$this->prepareRequest, 'DirectDebit'],
       [
           'body' => $body,
           $clientSecret,
@@ -148,7 +187,6 @@ class DirectDebit implements DirectDebitInterface {
     return $this->processRequest(
       'paymentStatus',
       ['originalPartnerReferenceNo', 'originalReferenceNo', 'serviceCode'],
-      [$this->prepareRequest, 'DirectDebit'],
       [
           'body' => $body,
           $clientSecret,
@@ -175,7 +213,6 @@ class DirectDebit implements DirectDebitInterface {
     return $this->processRequest(
       'refundPayment',
       ['originalPartnerReferenceNo', 'originalReferenceNo', 'partnerRefundNo', 'refundAmount', 'reason', 'additionalInfo'],
-      [$this->prepareRequest, 'DirectDebit'],
       [
           'body' => $body,
           $clientSecret,
@@ -211,10 +248,9 @@ class DirectDebit implements DirectDebitInterface {
       ]
     ];
 
-    return $this->processRequest(
+    return $this->processRequestOutbound(
         'paymentNotify',
         [],
-        [$this->prepareRequest, 'DirectDebitOutbound'],
         [$clientId, $clientSecret, $accessToken, json_encode($additionalBody, true)],
         $baseUrl
     );
@@ -240,10 +276,9 @@ class DirectDebit implements DirectDebitInterface {
       ]
     ];
 
-    return $this->processRequest(
+    return $this->processRequestOutbound(
       'refundNotify',
       [],
-      [$this->prepareRequest, 'DirectDebitOutbound'],
       [$clientId, $clientSecret, $accessToken, json_encode($additionalBody, true)],
       $baseUrl
     );
