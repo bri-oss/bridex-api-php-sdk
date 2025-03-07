@@ -79,30 +79,39 @@ class DirectDebit implements DirectDebitInterface {
     return $paths[$type];
   }
 
-  private function processRequest(
-      string $type,
-      array $bodyValidationKeys,
-      array $prepareArgs,
-      string $baseUrl
-  ): string {
-      foreach ($bodyValidationKeys as $key) {
-        if (!isset($prepareArgs['body'][$key])) {
-          throw new InvalidArgumentException("Missing required key: $key in body");
-        }
+  private function makeRequest(
+    string  $clientSecret,
+    string  $partnerId,
+    string  $accessToken,
+    string  $channelId,
+    string  $timestamp,
+    string  $externalId,
+    array   $body,
+    string  $type,
+    array   $requiredFields,
+    string  $baseUrl
+  ) {
+    foreach ($requiredFields as $field) {
+      if (!isset($body[$field])) {
+        throw new InvalidArgumentException(
+          sprintf('The field "%s" is required.', $field)
+        );
       }
+    }
 
-      $path = $this->getPath($type);
-      $prepareArgs[] = $path; // Add the path to the prepareArgs for dynamic preparation
-      list($bodyRequest, $headersRequest) = $this->prepareRequest->DirectDebit(
-        $prepareArgs[1],
-        $prepareArgs[2],
+    $path = $this->getPath($type);
+
+    list($bodyRequest, $headersRequest) = $this->prepareRequest->DirectDebit(
+        $clientSecret,
+        $partnerId,
         $path,
-        $prepareArgs[3],
-        $prepareArgs[4],
-        $prepareArgs[5],
-        $prepareArgs[6],
-        json_encode($prepareArgs['body'], true)
+        $accessToken,
+        $channelId,
+        $externalId,
+        $timestamp,
+        json_encode($body, true)
       );
+
       try {
           $response = $this->executeCurlRequest->execute(
             "$baseUrl$path",
@@ -158,19 +167,16 @@ class DirectDebit implements DirectDebitInterface {
     string $timestamp,
     array $body
   ): string {
-    return $this->processRequest(
+    return $this->makeRequest(
+      $clientSecret,
+      $partnerId,
+      $accessToken,
+      $channelId,
+      $timestamp,
+      $this->externalId,
+      $body,
       'payment',
       ['partnerReferenceNo', 'urlParam', 'amount', 'chargeToken', 'bankCardToken', 'additionalInfo'],
-      [
-          'body' => $body,
-          $clientSecret,
-          $partnerId,
-          $accessToken,
-          $channelId,
-          $this->externalId,
-          $timestamp,
-          json_encode($body, JSON_UNESCAPED_SLASHES)
-      ],
       $baseUrl
     );
   }
@@ -184,19 +190,16 @@ class DirectDebit implements DirectDebitInterface {
     string $timestamp,
     array $body
   ): string {
-    return $this->processRequest(
+    return $this->makeRequest(
+      $clientSecret,
+      $partnerId,
+      $accessToken,
+      $channelId,
+      $timestamp,
+      $this->externalId,
+      $body,
       'paymentStatus',
       ['originalPartnerReferenceNo', 'originalReferenceNo', 'serviceCode'],
-      [
-          'body' => $body,
-          $clientSecret,
-          $partnerId,
-          $accessToken,
-          $channelId,
-          $this->externalId,
-          $timestamp,
-          json_encode($body, JSON_UNESCAPED_SLASHES)
-      ],
       $baseUrl
     );
   }
@@ -210,19 +213,16 @@ class DirectDebit implements DirectDebitInterface {
     string $timestamp,
     array $body
   ): string {
-    return $this->processRequest(
+    return $this->makeRequest(
+      $clientSecret,
+      $partnerId,
+      $accessToken,
+      $channelId,
+      $timestamp,
+      $this->externalId,
+      $body,
       'refundPayment',
       ['originalPartnerReferenceNo', 'originalReferenceNo', 'partnerRefundNo', 'refundAmount', 'reason', 'additionalInfo'],
-      [
-          'body' => $body,
-          $clientSecret,
-          $partnerId,
-          $accessToken,
-          $channelId,
-          $this->externalId,
-          $timestamp,
-          json_encode($body, JSON_UNESCAPED_SLASHES)
-      ],
       $baseUrl
     );
   }
