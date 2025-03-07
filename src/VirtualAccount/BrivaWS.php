@@ -169,7 +169,7 @@ class BrivaWS implements BrivaWSInterface {
     }
 
     // Validate partnerServiceId
-    if (empty($partnerServiceId) || !preg_match('/^[a-zA-Z0-9\-]{3,}$/', $partnerServiceId)) {
+    if (empty($partnerServiceId)) {
         throw new InvalidArgumentException('Invalid or missing partnerServiceId.');
     }
 
