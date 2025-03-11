@@ -143,7 +143,7 @@ class Brizzi implements BrizziInterface {
       $accessToken,
       $timestamp,
       $body,
-      'checkTopupStatus',
+      'checkTopupDeposit',
       ['username', 'brizziCardNo', 'amount', 'reff']
     );
   }

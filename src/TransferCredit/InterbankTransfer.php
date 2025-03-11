@@ -202,7 +202,7 @@ class InterbankTransfer implements InterbankTransferInterface {
         $channelId,
         $this->externalId,
         $timestamp,
-        json_encode($additionalBody, true),
+        json_encode($additionalBody, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
         'POST'
       );
 

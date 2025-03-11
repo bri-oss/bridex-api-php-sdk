@@ -109,7 +109,7 @@ class DirectDebit implements DirectDebitInterface {
         $channelId,
         $externalId,
         $timestamp,
-        json_encode($body, true)
+        json_encode($body, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)
       );
 
       try {
