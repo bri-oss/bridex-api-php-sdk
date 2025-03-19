@@ -74,7 +74,7 @@ class QrisMPMDynamic implements QrisMPMDynamicInterface {
       $channelId,
       $this->externalId,
       $timestamp,
-      json_encode($body, true)
+      json_encode($body, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)
     );
 
     $response = $this->executeCurlRequest->execute(
@@ -106,7 +106,7 @@ class QrisMPMDynamic implements QrisMPMDynamicInterface {
       $channelId,
       $this->externalId,
       $timestamp,
-      json_encode($body, true)
+      json_encode($body, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)
     );
 
     $response = $this->executeCurlRequest->execute(
