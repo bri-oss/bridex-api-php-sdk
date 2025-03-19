@@ -47,9 +47,9 @@ class Brizzi implements BrizziInterface {
 
   private function getPath(string $type): string {
     $paths = [
-      'validateCardNumber' => '/v2.0/brizzi/checknum',
+      'validateCardNumber' => '/v2.0/brizzi/mock/checknum',
       'topupDeposit' => '/v2.0/brizzi/topup',
-      'checkTopupDeposit' => '/v2.0/brizzi/checktrx'
+      'checkTopupDeposit' => '/v2.0/brizzi/mock/checktrx'
     ];
 
     if (!array_key_exists($type, $paths)) {

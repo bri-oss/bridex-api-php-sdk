@@ -96,7 +96,7 @@ class QrisMPMDynamic implements QrisMPMDynamicInterface {
     array $body
   ): string {
 
-    $path = $this->getPath('generateQR');
+    $path = $this->getPath('inquiryPayment');
 
     list($bodyRequest, $headersRequest) = $this->prepareRequest->QrisMPMDynamic(
       $clientSecret,
@@ -112,7 +112,8 @@ class QrisMPMDynamic implements QrisMPMDynamicInterface {
     $response = $this->executeCurlRequest->execute(
       "$baseUrl$path",
       $headersRequest,
-      $bodyRequest
+      $bodyRequest,
+      "POST"
     );
 
     return $response;

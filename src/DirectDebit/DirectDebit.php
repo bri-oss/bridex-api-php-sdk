@@ -143,7 +143,7 @@ class DirectDebit implements DirectDebitInterface {
         $prepareArgs[0],
         $prepareArgs[1],
         $prepareArgs[2],
-        json_encode($prepareArgs[3], true)
+        json_encode($prepareArgs[3], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)
       );
       try {
           $response = $this->executeCurlRequest->execute(
@@ -251,7 +251,7 @@ class DirectDebit implements DirectDebitInterface {
     return $this->processRequestOutbound(
         'paymentNotify',
         [],
-        [$clientId, $clientSecret, $accessToken, json_encode($additionalBody, true)],
+        [$clientId, $clientSecret, $accessToken, json_encode($additionalBody, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)],
         $baseUrl
     );
   }
@@ -279,7 +279,7 @@ class DirectDebit implements DirectDebitInterface {
     return $this->processRequestOutbound(
       'refundNotify',
       [],
-      [$clientId, $clientSecret, $accessToken, json_encode($additionalBody, true)],
+      [$clientId, $clientSecret, $accessToken, json_encode($additionalBody, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)],
       $baseUrl
     );
   }
